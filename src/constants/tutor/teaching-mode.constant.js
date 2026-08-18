@@ -1,0 +1,11 @@
+export const TEACHING_MODES = {
+  ONLINE: "ONLINE",
+  IN_PERSON: "IN_PERSON",
+  BOTH: "BOTH",
+};
+
+export const TEACHING_MODE_LABELS = {
+  [TEACHING_MODES.ONLINE]: "Online",
+  [TEACHING_MODES.IN_PERSON]: "In Person",
+  [TEACHING_MODES.BOTH]: "Both",
+};
