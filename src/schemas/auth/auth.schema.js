@@ -9,7 +9,7 @@ import {
   passwordSchema,
   phoneNumberSchema,
   timezoneSchema,
-} from "@/utils";
+} from "@/schemas/common/common.schema";
 
 export const signupSchema = z.object({
   full_name: fullNameSchema,

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { timeSchema } from "@/utils";
+import { timeSchema } from "@/schemas/common/common.schema";
 
 export const createAvailabilitySchema = z.object({
   day_of_week: z

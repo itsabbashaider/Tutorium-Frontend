@@ -1,4 +1,4 @@
-export { default as Button } from "./button.common";
+export { default as Button } from "./button.component";
 export {
   default as Card,
   CardHeader,
@@ -6,15 +6,15 @@ export {
   CardDescription,
   CardContent,
   CardFooter,
-} from "./card.common";
-export { default as Input } from "./input.common";
-export { default as Label } from "./label.common";
-export { default as Select } from "./select.common";
-export { default as Textarea } from "./textarea.common";
-export { default as Badge } from "./badge.common";
-export { default as Spinner } from "./spinner.common";
-export { default as Loading } from "./loading.common";
-export { default as EmptyState } from "./empty-state.common";
-export { default as ErrorState } from "./error-state.common";
-export { default as Modal } from "./modal.common";
-export { default as Pagination } from "./pagination.common";
+} from "./card.component";
+export { default as Input } from "./input.component";
+export { default as Label } from "./label.component";
+export { default as Select } from "./select.component";
+export { default as Textarea } from "./textarea.component";
+export { default as Badge } from "./badge.component";
+export { default as Spinner } from "./spinner.component";
+export { default as Loading } from "./loading.component";
+export { default as EmptyState } from "./empty-state.component";
+export { default as ErrorState } from "./error-state.component";
+export { default as Modal } from "./modal.component";
+export { default as Pagination } from "./pagination.component";

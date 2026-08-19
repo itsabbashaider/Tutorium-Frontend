@@ -1,6 +1,6 @@
 "use client";
 
-import  LogoutButton  from "@/components/auth/logout-button.auth";
+import  LogoutButton  from "@/components/auth/logout-button.component";
 import { useAuth } from "@/hooks";
 
 export default function StudentDashboardPage() {

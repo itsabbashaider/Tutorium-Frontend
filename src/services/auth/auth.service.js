@@ -1,11 +1,9 @@
-import { AUTH_ENDPOINTS } from "@/constants";
-
 import api from "@/services/auth/api.service";
 
 const authService = {
   login(credentials, config = {}) {
     return api.post(
-      AUTH_ENDPOINTS.LOGIN,
+      "/auth/login",
       credentials,
       config
     );
@@ -13,7 +11,7 @@ const authService = {
 
   signup(payload, config = {}) {
     return api.post(
-      AUTH_ENDPOINTS.SIGNUP,
+      "/auth/signup",
       payload,
       config
     );
@@ -21,7 +19,7 @@ const authService = {
 
   logout() {
     return api.post(
-      AUTH_ENDPOINTS.LOGOUT
+      "/auth/logout"
     );
   },
 
@@ -29,27 +27,27 @@ const authService = {
     console.count("GET /me");
 
     return api.get(
-      AUTH_ENDPOINTS.ME
+      "/auth/me"
     );
   },
 
   refreshToken(payload) {
     return api.post(
-      AUTH_ENDPOINTS.REFRESH_TOKEN,
+      "/auth/refresh-token",
       payload
     );
   },
 
   forgotPassword(payload) {
     return api.post(
-      AUTH_ENDPOINTS.FORGOT_PASSWORD,
+      "/auth/forgot-password",
       payload
     );
   },
 
   resetPassword(payload) {
     return api.post(
-      AUTH_ENDPOINTS.RESET_PASSWORD,
+      "/auth/reset-password",
       payload
     );
   },

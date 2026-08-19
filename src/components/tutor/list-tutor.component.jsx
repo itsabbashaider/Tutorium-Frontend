@@ -9,8 +9,8 @@ import {
   Pagination,
 } from "../common";
 
-import TutorCard from "./card.tutor";
-import TutorSearch from "./search.tutor";
+import TutorCard from "./card-tutor.component";
+import TutorSearch from "./search-tutor.component";
 
 import { useTutors } from "../../hooks/tutor/use-tutor.hook";
 

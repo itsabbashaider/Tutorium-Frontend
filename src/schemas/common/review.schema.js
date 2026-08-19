@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { uuidSchema } from "@/utils";
+import { uuidSchema } from "@/schemas/common/common.schema";
 
 export const createReviewSchema = z.object({
   booking_id: uuidSchema,

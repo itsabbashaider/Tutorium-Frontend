@@ -2,7 +2,7 @@ const currency = {
   format(
     amount,
     locale = "en-US",
-    currencyCode = "USD"
+    currencyCode = "PKR"
   ) {
     return new Intl.NumberFormat(locale, {
       style: "currency",

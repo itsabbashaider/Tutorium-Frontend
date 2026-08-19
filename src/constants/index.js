@@ -1,5 +1,4 @@
 export * from "./auth/api.constant";
-export * from "./auth/auth.constant";
 export * from "./auth/route.constant";
 
 export * from "./common/user-roles.constant";

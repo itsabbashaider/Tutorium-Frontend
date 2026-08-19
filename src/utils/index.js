@@ -1,7 +1,6 @@
 export * from "./common/booking-date.util";
 export * from "./common/date.util";
 export * from "./common/booking.util";
-export * from "./common/schema.util";
 export { default as cn } from "./common/cn.util";
 export { default as currency } from "./common/currency.util";
 export { default as debounce } from "./common/debounce.util";

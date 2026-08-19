@@ -18,7 +18,7 @@ import {
   CardHeader,
   CardTitle,
   Input,
-} from "../../components/common";
+} from "../common";
 
 const RegisterForm = () => {
   const router = useRouter();

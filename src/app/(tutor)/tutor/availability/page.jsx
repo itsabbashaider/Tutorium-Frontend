@@ -1,4 +1,4 @@
-import TutorAvailability from "@/components/tutor/availability.tutor";
+import TutorAvailability from "@/components/tutor/availability-tutor.component";
 
 const TutorAvailabilityPage = () => {
   return <TutorAvailability />;

@@ -1,4 +1,4 @@
-import Spinner from "./spinner.common";
+import Spinner from "./spinner.component";
 
 const Loading = ({
   message = "Loading...",

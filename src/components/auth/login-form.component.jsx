@@ -15,7 +15,7 @@ import {
   CardHeader,
   CardTitle,
   Input,
-} from "../../components/common";
+} from "../common";
 
 const LoginForm = () => {
   const { loginMutation } = useAuth();
