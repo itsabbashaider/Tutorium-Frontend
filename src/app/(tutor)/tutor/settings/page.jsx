@@ -23,20 +23,17 @@ import {
   useUpdateTutorProfile,
 } from "@/hooks";
 
-const TEACHING_MODE_OPTIONS = [
-  {
-    value: "ONLINE",
-    label: "Online",
-  },
-  {
-    value: "IN_PERSON",
-    label: "In person",
-  },
-  {
-    value: "BOTH",
-    label: "Online & in person",
-  },
-];
+import {
+  TEACHING_MODES,
+  TEACHING_MODE_LABELS,
+} from "@/constants";
+
+const teachingModeOptions = Object.values(
+  TEACHING_MODES
+).map((mode) => ({
+  value: mode,
+  label: TEACHING_MODE_LABELS[mode],
+}));
 
 const TutorSettingsPage = () => {
   const {
@@ -252,16 +249,15 @@ const TutorSettingsPage = () => {
     null;
 
   return (
-    <div className="mx-auto w-full max-w-5xl">
-      {/* Page header */}
-      <div className="border-b border-[#e5e7eb] pb-6">
+    <div className="mx-auto w-full max-w-6xl">
+      <section className="border-b border-[#e5e7eb] pb-6">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#f0f3ff] text-lg font-semibold text-[#3949ab]">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#f0f3ff] text-base font-semibold text-[#3949ab]">
             {userInitial}
           </div>
 
           <div className="min-w-0">
-            <h1 className="text-2xl font-semibold tracking-tight text-black">
+            <h1 className="text-2xl font-semibold tracking-tight text-black sm:text-3xl">
               Settings
             </h1>
 
@@ -273,9 +269,9 @@ const TutorSettingsPage = () => {
             </p>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="space-y-5 pt-6">
+      <div className="space-y-4 pt-6">
         {/* Personal information */}
         <Card>
           <CardHeader className="border-b border-[#e5e7eb]">
@@ -294,7 +290,6 @@ const TutorSettingsPage = () => {
                     updateProfileMutation.reset();
                     setIsUserEditing(true);
                   }}
-                  className="transition-colors hover:border-black hover:bg-black hover:text-white"
                 >
                   Edit
                 </Button>
@@ -304,7 +299,7 @@ const TutorSettingsPage = () => {
 
           <CardContent className="pt-6">
             {!isUserEditing ? (
-              <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+              <div className="grid gap-x-10 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
                   <p className="text-xs uppercase tracking-wide text-[#8a8e95]">
                     Full name
@@ -444,7 +439,6 @@ const TutorSettingsPage = () => {
                     updateTutorProfileMutation.reset();
                     setIsTutorEditing(true);
                   }}
-                  className="transition-colors hover:border-black hover:bg-black hover:text-white"
                 >
                   Edit
                 </Button>
@@ -460,13 +454,13 @@ const TutorSettingsPage = () => {
                     Bio
                   </p>
 
-                  <p className="mt-2 max-w-4xl whitespace-pre-wrap text-sm leading-6 text-[#33373d]">
+                  <p className="mt-2 max-w-4xl whitespace-pre-wrap text-sm leading-7 text-[#33373d]">
                     {tutor.professional_bio ||
                       "No bio added."}
                   </p>
                 </div>
 
-                <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+                <div className="grid gap-x-10 gap-y-6 sm:grid-cols-2">
                   <div>
                     <p className="text-xs uppercase tracking-wide text-[#8a8e95]">
                       Hourly rate
@@ -490,7 +484,9 @@ const TutorSettingsPage = () => {
                     </p>
 
                     <p className="mt-1.5 text-sm font-medium text-black">
-                      {tutor.teaching_mode || "—"}
+                      {TEACHING_MODE_LABELS[
+                        tutor.teaching_mode
+                      ] ?? "—"}
                     </p>
                   </div>
                 </div>
@@ -531,7 +527,7 @@ const TutorSettingsPage = () => {
                     label="Teaching mode"
                     value={tutorForm.teaching_mode}
                     onChange={handleTutorChange}
-                    options={TEACHING_MODE_OPTIONS}
+                    options={teachingModeOptions}
                   />
                 </div>
 
@@ -584,7 +580,7 @@ const TutorSettingsPage = () => {
           </CardHeader>
 
           <CardContent>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-medium text-black">
                   {tutor.is_available
@@ -606,7 +602,7 @@ const TutorSettingsPage = () => {
                 disabled={
                   updateTutorProfileMutation.isPending
                 }
-                className="shrink-0 transition-colors hover:border-black hover:bg-black hover:text-white"
+                className="shrink-0"
               >
                 {updateTutorProfileMutation.isPending
                   ? "Updating..."
@@ -621,11 +617,13 @@ const TutorSettingsPage = () => {
         {/* Account */}
         <Card>
           <CardHeader>
-            <CardTitle>Account</CardTitle>
+            <CardTitle>
+              Account
+            </CardTitle>
           </CardHeader>
 
           <CardContent>
-            <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+            <div className="grid gap-x-10 gap-y-6 sm:grid-cols-2">
               <div>
                 <p className="text-xs uppercase tracking-wide text-[#8a8e95]">
                   Email
@@ -652,7 +650,9 @@ const TutorSettingsPage = () => {
         {/* Password */}
         <Card>
           <CardHeader>
-            <CardTitle>Password</CardTitle>
+            <CardTitle>
+              Password
+            </CardTitle>
           </CardHeader>
 
           <CardContent>

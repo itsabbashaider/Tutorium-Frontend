@@ -6,9 +6,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-import {
-  QUERY_KEYS,
-} from "@/constants";
+import { QUERY_KEYS } from "@/constants";
 
 import reviewService from "@/services/common/review.service";
 
@@ -89,10 +87,17 @@ export const useCreateReview = (
       variables,
       context
     ) => {
+      // Student reviews page
       queryClient.invalidateQueries({
         queryKey: ["my-reviews"],
       });
 
+      // Student bookings page
+      queryClient.invalidateQueries({
+        queryKey: ["student-bookings"],
+      });
+
+      // Tutor review pages / rating
       queryClient.invalidateQueries({
         queryKey: ["tutor-reviews"],
       });

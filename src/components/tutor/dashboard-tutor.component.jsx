@@ -20,8 +20,16 @@ import {
   useTutorDashboard,
   useTutorProfile,
   useTutorSubjects,
-  useTutorAvailability,
 } from "@/hooks";
+
+import {
+  formatBookingCurrency,
+  formatRating,
+} from "@/utils";
+
+import {
+  TEACHING_MODE_LABELS,
+} from "@/constants";
 
 const TutorDashboard = () => {
   const {
@@ -52,19 +60,11 @@ const TutorDashboard = () => {
     error: subjectsError,
   } = useTutorSubjects();
 
-  const {
-    data: availability = [],
-    isLoading: isAvailabilityLoading,
-    isError: isAvailabilityError,
-    error: availabilityError,
-  } = useTutorAvailability();
-
   const isLoading =
     isUserLoading ||
     isTutorLoading ||
     isDashboardLoading ||
-    isSubjectsLoading ||
-    isAvailabilityLoading;
+    isSubjectsLoading;
 
   if (isLoading) {
     return <Loading />;
@@ -122,16 +122,15 @@ const TutorDashboard = () => {
     );
   }
 
-  if (isAvailabilityError) {
+  if (!user || !tutor || !dashboard) {
     return (
-      <ErrorState
-        title="Unable to load availability"
-        message={
-          availabilityError?.response?.data?.message ||
-          availabilityError?.message ||
-          "Unable to load your availability."
-        }
-      />
+      <Card>
+        <CardContent className="p-6">
+          <p className="text-sm text-[#626770]">
+            Dashboard data is unavailable.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -141,12 +140,15 @@ const TutorDashboard = () => {
   const bookingStats =
     dashboard?.booking_stats || {};
 
+  const availabilityStats =
+    dashboard?.availability_stats || {};
+
   const {
     professional_bio,
     hourly_rate,
     teaching_mode,
     is_available,
-  } = tutor || {};
+  } = tutor;
 
   const {
     average_rating,
@@ -164,65 +166,40 @@ const TutorDashboard = () => {
     cancelled_bookings,
   } = bookingStats;
 
+  const activeSlots =
+    availabilityStats.active_slots ?? 0;
+
   const bookingOverview = [
     {
       label: "Pending",
       value: pending_bookings ?? 0,
-      variant: "warning",
     },
     {
       label: "Accepted",
       value: accepted_bookings ?? 0,
-      variant: "info",
     },
     {
       label: "Completed",
       value: completed_bookings ?? 0,
-      variant: "success",
     },
     {
       label: "Rejected",
       value: rejected_bookings ?? 0,
-      variant: "danger",
     },
     {
       label: "Cancelled",
       value: cancelled_bookings ?? 0,
-      variant: "secondary",
     },
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="mx-auto w-full max-w-6xl space-y-6">
       {/* Header */}
-      <section className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+      <section className="flex flex-col gap-5 border-b border-[#e5e7eb] pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-black">
+          <h1 className="text-2xl font-semibold tracking-tight text-black sm:text-3xl">
             Welcome back
-            {user?.full_name
-              ? `, ${user.full_name}`
-              : ""}
           </h1>
-
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#626770]">
-            A quick overview of your tutoring activity,
-            profile, and bookings.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <Link href="/tutor/bookings">
-            <Button>
-              Manage bookings
-            </Button>
-          </Link>
-
-          <Link href="/tutor/settings/profile">
-            <Button variant="outline">
-              Edit profile
-            </Button>
-          </Link>
         </div>
       </section>
 
@@ -235,17 +212,24 @@ const TutorDashboard = () => {
                 Average rating
               </p>
 
-              <p className="mt-2 text-2xl font-semibold text-black">
+              <p className="mt-2 text-2xl font-semibold tracking-tight text-black">
                 {average_rating !== undefined &&
                 average_rating !== null
-                  ? Number(
+                  ? formatRating(
                       average_rating
-                    ).toFixed(1)
-                  : "—"}/5
+                    )
+                  : "—"}
+
+                <span className="text-sm font-normal text-[#8a8e95]">
+                  / 5
+                </span>
               </p>
 
               <p className="mt-1 text-xs text-[#6b7280]">
-                {total_reviews ?? 0} reviews
+                {total_reviews ?? 0}{" "}
+                {total_reviews === 1
+                  ? "review"
+                  : "reviews"}
               </p>
             </CardContent>
           </Card>
@@ -256,7 +240,7 @@ const TutorDashboard = () => {
                 Completed sessions
               </p>
 
-              <p className="mt-2 text-2xl font-semibold text-black">
+              <p className="mt-2 text-2xl font-semibold tracking-tight text-black">
                 {completed_sessions ?? 0}
               </p>
             </CardContent>
@@ -268,11 +252,10 @@ const TutorDashboard = () => {
                 Total earnings
               </p>
 
-              <p className="mt-2 text-2xl font-semibold text-black">
-                Rs.{" "}
-                {Number(
+              <p className="mt-2 text-2xl font-semibold tracking-tight text-black">
+                {formatBookingCurrency(
                   total_earnings ?? 0
-                ).toLocaleString()}
+                )}
               </p>
             </CardContent>
           </Card>
@@ -283,7 +266,7 @@ const TutorDashboard = () => {
                 Total bookings
               </p>
 
-              <p className="mt-2 text-2xl font-semibold text-black">
+              <p className="mt-2 text-2xl font-semibold tracking-tight text-black">
                 {total_bookings ?? 0}
               </p>
             </CardContent>
@@ -306,7 +289,10 @@ const TutorDashboard = () => {
             </div>
 
             <Link href="/tutor/bookings">
-              <Button variant="outline">
+              <Button
+                type="button"
+                variant="outline"
+              >
                 View bookings
               </Button>
             </Link>
@@ -315,18 +301,22 @@ const TutorDashboard = () => {
 
         <CardContent>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {bookingOverview.map(
-            ({ label, value, variant }) => (
-              <div
-                key={label}
-                className="rounded-lg border border-[#e5e7eb] bg-[#fafbfc] p-4"
-              > {label}
-                <p className="mt-3 text-2xl font-semibold text-black">
-                  {value}
-                </p>
-              </div>
-            )
-          )}
+            {bookingOverview.map(
+              ({ label, value }) => (
+                <div
+                  key={label}
+                  className="rounded-lg border border-[#e5e7eb] bg-[#fafbfc] p-4"
+                >
+                  <p className="text-sm font-medium text-[#626770]">
+                    {label}
+                  </p>
+
+                  <p className="mt-2 text-2xl font-semibold text-black">
+                    {value}
+                  </p>
+                </div>
+              )
+            )}
           </div>
         </CardContent>
       </Card>
@@ -341,12 +331,15 @@ const TutorDashboard = () => {
               </CardTitle>
 
               <CardDescription>
-                Information about the tutor.
+                Your current tutor profile information.
               </CardDescription>
             </div>
 
-            <Link href="/tutor/settings/profile">
-              <Button variant="outline">
+            <Link href="/tutor/settings">
+              <Button
+                type="button"
+                variant="outline"
+              >
                 Edit profile
               </Button>
             </Link>
@@ -361,7 +354,7 @@ const TutorDashboard = () => {
               </p>
 
               <p className="mt-1 text-sm font-medium text-black">
-                {user?.full_name || "—"}
+                {user.full_name || "—"}
               </p>
             </div>
 
@@ -371,7 +364,7 @@ const TutorDashboard = () => {
               </p>
 
               <p className="mt-1 text-sm font-medium text-black">
-                {user?.city || "—"}
+                {user.city || "—"}
               </p>
             </div>
 
@@ -383,9 +376,9 @@ const TutorDashboard = () => {
               <p className="mt-1 text-sm font-medium text-black">
                 {hourly_rate !== undefined &&
                 hourly_rate !== null
-                  ? `Rs. ${Number(
+                  ? `${formatBookingCurrency(
                       hourly_rate
-                    ).toLocaleString()}/hr`
+                    )}/hr`
                   : "—"}
               </p>
             </div>
@@ -396,7 +389,9 @@ const TutorDashboard = () => {
               </p>
 
               <p className="mt-1 text-sm font-medium text-black">
-                {teaching_mode || "—"}
+                {TEACHING_MODE_LABELS[
+                  teaching_mode
+                ] ?? "—"}
               </p>
             </div>
           </div>
@@ -431,7 +426,11 @@ const TutorDashboard = () => {
               </div>
 
               <Link href="/tutor/subjects">
-                <Button variant="outline">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                >
                   Manage
                 </Button>
               </Link>
@@ -478,7 +477,11 @@ const TutorDashboard = () => {
               </div>
 
               <Link href="/tutor/availability">
-                <Button variant="outline">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                >
                   Manage
                 </Button>
               </Link>
@@ -486,7 +489,7 @@ const TutorDashboard = () => {
           </CardHeader>
 
           <CardContent>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-[#8a8e95]">
                   Status
@@ -513,7 +516,7 @@ const TutorDashboard = () => {
                 </p>
 
                 <p className="mt-2 text-2xl font-semibold text-black">
-                  {availability.length}
+                  {activeSlots}
                 </p>
               </div>
             </div>

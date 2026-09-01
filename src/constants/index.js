@@ -9,3 +9,4 @@ export * from "./common/booking.constant";
 
 export * from "./tutor/teaching-mode.constant";
 export * from "./tutor/tutor-avail.constant";
+export { default as DAYS_OF_WEEK } from "./common/week-days.contant";

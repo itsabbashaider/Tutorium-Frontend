@@ -24,15 +24,11 @@ import {
   useUpdateTutorAvailability,
 } from "@/hooks";
 
-const DAYS = [
-  { value: 0, label: "Sunday", short: "Sun" },
-  { value: 1, label: "Monday", short: "Mon" },
-  { value: 2, label: "Tuesday", short: "Tue" },
-  { value: 3, label: "Wednesday", short: "Wed" },
-  { value: 4, label: "Thursday", short: "Thu" },
-  { value: 5, label: "Friday", short: "Fri" },
-  { value: 6, label: "Saturday", short: "Sat" },
-];
+import {
+  DAYS_OF_WEEK,
+} from "@/constants";
+
+import { formatTime } from "@/utils";
 
 const DEFAULT_FORM = {
   day_of_week: 1,
@@ -41,51 +37,6 @@ const DEFAULT_FORM = {
   is_active: true,
 };
 
-const getDayName = (day) => {
-  return (
-    DAYS.find(
-      (item) => item.value === Number(day)
-    )?.label || "Unknown day"
-  );
-};
-
-const getDayShortName = (day) => {
-  return (
-    DAYS.find(
-      (item) => item.value === Number(day)
-    )?.short || "—"
-  );
-};
-
-const formatTime = (time) => {
-  if (!time) return "—";
-
-  const normalized = String(time).slice(0, 5);
-
-  const [hours, minutes] =
-    normalized.split(":");
-
-  if (
-    hours === undefined ||
-    minutes === undefined
-  ) {
-    return normalized;
-  }
-
-  const date = new Date();
-
-  date.setHours(
-    Number(hours),
-    Number(minutes),
-    0,
-    0
-  );
-
-  return date.toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-};
 
 const TutorAvailabilityPage = () => {
   const {
@@ -314,15 +265,12 @@ const TutorAvailabilityPage = () => {
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-black">
             Availability
           </h1>
-
-          <p className="mt-2 text-sm text-[#626770]">
-            Manage your recurring lesson times.
-          </p>
         </div>
 
         {!showForm && (
           <Button
             type="button"
+            variant="outline"
             onClick={openCreateForm}
           >
             Add availability
@@ -367,7 +315,7 @@ const TutorAvailabilityPage = () => {
                   label="Day"
                   value={form.day_of_week}
                   onChange={handleChange}
-                  options={DAYS.map(
+                  options={DAYS_OF_WEEK.map(
                     (day) => ({
                       value: day.value,
                       label: day.label,
@@ -436,6 +384,7 @@ const TutorAvailabilityPage = () => {
 
                 <Button
                   type="submit"
+                  variant="outline"
                   disabled={
                     isSaving ||
                     !form.start_time ||
@@ -489,6 +438,7 @@ const TutorAvailabilityPage = () => {
               action={
                 <Button
                   type="button"
+                  variant="outline"
                   onClick={openCreateForm}
                 >
                   Add availability
@@ -507,17 +457,19 @@ const TutorAvailabilityPage = () => {
                   >
                     <div className="flex min-w-0 items-center gap-4">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#f0f3ff] text-xs font-semibold text-[#3949ab]">
-                        {getDayShortName(
-                          slot.day_of_week
-                        )}
+                        {DAYS_OF_WEEK.find(
+                          (day) =>
+                            day.value === Number(slot.day_of_week)
+                        )?.short ?? "—"}
                       </div>
 
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="text-sm font-semibold text-black">
-                            {getDayName(
-                              slot.day_of_week
-                            )}
+                            {DAYS_OF_WEEK.find(
+                              (day) =>
+                                day.value === Number(slot.day_of_week)
+                            )?.label ?? "Unknown day"}
                           </p>
 
                           <Badge variant="secondary">

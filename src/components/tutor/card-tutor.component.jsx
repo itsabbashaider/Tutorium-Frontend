@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 
-import {
-  Button,
-} from "../common";
+import { Button } from "../common";
 
 const TutorCard = ({
   tutor,
+  showBookButton = false,
+  onBook,
 }) => {
   if (!tutor) {
     return null;
@@ -23,10 +23,14 @@ const TutorCard = ({
     total_completed_sessions,
     city,
     subjects = [],
+    is_bookable,
   } = tutor;
 
   const visibleSubjects =
     subjects.slice(0, 3);
+
+  const canBook =
+    is_bookable === true;
 
   const formattedRate =
     hourly_rate !== undefined &&
@@ -41,6 +45,14 @@ const TutorCard = ({
     avg_rating !== null
       ? Number(avg_rating).toFixed(1)
       : null;
+
+  const handleBook = () => {
+    if (!canBook) {
+      return;
+    }
+
+    onBook?.(tutor);
+  };
 
   return (
     <article className="group overflow-hidden rounded-lg border border-[#e5e7eb] bg-white transition-colors hover:border-[#c9cdd3]">
@@ -114,7 +126,7 @@ const TutorCard = ({
           </div>
         )}
 
-        <div className="mt-5 flex items-end justify-between gap-4 border-t border-[#e5e7eb] pt-4">
+        <div className="mt-5 flex flex-col gap-4 border-t border-[#e5e7eb] pt-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-base font-semibold text-black">
               {formattedRate}
@@ -135,17 +147,31 @@ const TutorCard = ({
           </div>
 
           {tutor_profile_id && (
-            <Link
-              href={`/tutor/${tutor_profile_id}`}
-            >
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
+            <div className="flex flex-wrap gap-2">
+              {showBookButton && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={!canBook}
+                  onClick={handleBook}
+                >
+                  {canBook ? "Book" : "Unavailable"}
+                </Button>
+              )}
+
+              <Link
+                href={`/tutor/${tutor_profile_id}`}
               >
-                View profile
-              </Button>
-            </Link>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                >
+                  View profile
+                </Button>
+              </Link>
+            </div>
           )}
         </div>
       </div>

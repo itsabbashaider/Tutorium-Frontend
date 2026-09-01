@@ -20,13 +20,12 @@ import {
   formatBookingDate,
   formatBookingDateTime,
   formatBookingTime,
-  formatRating,
+  formatRating
 } from "@/utils";
 
 const PAGE_SIZE = 10;
 
-
-const TutorReviewsPage = () => {
+const StudentReviewsPage = () => {
   const [page, setPage] = useState(1);
 
   const {
@@ -95,7 +94,7 @@ const TutorReviewsPage = () => {
           <CardContent className="p-6">
             <EmptyState
               title="No reviews yet"
-              message="Student feedback will appear here after completed lessons are reviewed."
+              message="Reviews you leave after completed lessons will appear here."
             />
           </CardContent>
         </Card>
@@ -105,7 +104,7 @@ const TutorReviewsPage = () => {
           <section className="space-y-4">
             {reviews.map((review) => {
               const booking = review.booking ?? {};
-              const student = booking.student ?? {};
+              const tutor = booking.tutor ?? {};
               const subject = booking.subject ?? {};
 
               return (
@@ -114,14 +113,14 @@ const TutorReviewsPage = () => {
                   className="rounded-xl border border-[#e5e7eb] bg-white p-5 transition-colors hover:border-[#d4d8de] sm:p-6"
                 >
                   {/* Review header */}
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between ">
                     <div>
                       <p className="text-xs text-[#8a8e95]">
-                        Student
+                        Tutor
                       </p>
 
                       <p className="mt-1 text-sm font-semibold text-black">
-                        {student.full_name || "Student"}
+                        {tutor.full_name || "Tutor"}
                       </p>
 
                       <div className="mt-1 flex items-center gap-1.5">
@@ -224,7 +223,7 @@ const TutorReviewsPage = () => {
                     {booking.booking_id && (
                       <div className="mt-5 flex justify-end">
                         <Link
-                          href={`/tutor/bookings/${booking.booking_id}`}
+                          href={`/student/bookings/${booking.booking_id}`}
                         >
                           <Button
                             type="button"
@@ -255,4 +254,4 @@ const TutorReviewsPage = () => {
   );
 };
 
-export default TutorReviewsPage;
+export default StudentReviewsPage;

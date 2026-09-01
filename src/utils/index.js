@@ -9,3 +9,5 @@ export { default as string } from "./common/string.util";
 export { default as token } from "./common/token.util";
 export { default as invalidateBookingQueries } from "./common/booking-query.util";
 export { default as invalidateReviewQueries } from "./common/review-query.util";
+export * from "./common/formatter.util";
+export { normalizeTutor } from "./tutor/tutor.util";

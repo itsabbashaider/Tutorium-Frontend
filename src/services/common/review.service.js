@@ -6,7 +6,7 @@ const reviewService = {
       params,
     });
   },
-
+  
   getTutorReviews(tutorProfileId, params = {}) {
     return api.get(`/reviews/tutor/${tutorProfileId}`, {
       params,
@@ -20,6 +20,7 @@ const reviewService = {
   create(data) {
     return api.post("/reviews", data);
   },
+
 };
 
 export default reviewService;

@@ -3,12 +3,19 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import {
+  CalendarDays,
+  Clock3,
+  MapPin,
+  MessageSquare,
+  Video,
+} from "lucide-react";
 
 import {
+  Badge,
   Button,
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
   EmptyState,
@@ -28,10 +35,16 @@ import {
   formatBookingCurrency,
   formatBookingDate,
   formatBookingDateTime,
-  formatBookingTime,
   formatTimeValue,
-  getDayName,
+  getInitial
 } from "@/utils";
+
+import {
+  DAYS_OF_WEEK_BY_NUMBER,
+  BOOKING_STATUS,
+  BOOKING_STATUS_VARIANTS,
+} from "@/constants";
+
 
 const TutorBookingDetailsPage = () => {
   const params = useParams();
@@ -45,15 +58,20 @@ const TutorBookingDetailsPage = () => {
     useState("");
 
   const {
-    data,
+    data: booking,
     isLoading,
     isError,
     error,
   } = useBooking(bookingId);
 
-  const acceptMutation = useAcceptBooking();
-  const rejectMutation = useRejectBooking();
-  const completeMutation = useCompleteBooking();
+  const acceptMutation =
+    useAcceptBooking();
+
+  const rejectMutation =
+    useRejectBooking();
+
+  const completeMutation =
+    useCompleteBooking();
 
   if (isLoading) {
     return <Loading />;
@@ -66,13 +84,11 @@ const TutorBookingDetailsPage = () => {
         message={
           error?.response?.data?.message ||
           error?.message ||
-          "Something went wrong while loading this booking."
+          "Unable to load this booking."
         }
       />
     );
   }
-
-  const booking = data ?? null;
 
   if (!booking) {
     return (
@@ -83,7 +99,7 @@ const TutorBookingDetailsPage = () => {
     );
   }
 
-  const studentUser =
+  const student =
     booking.student?.user ?? null;
 
   const subject =
@@ -92,40 +108,58 @@ const TutorBookingDetailsPage = () => {
   const availability =
     booking.availability ?? null;
 
-  const status = booking.status;
-
-  const isPending =
-    status === "PENDING";
-
-  const isAccepted =
-    status === "ACCEPTED";
+  const status =
+    booking.status || "UNKNOWN";
 
   const isCompleted =
     status === "COMPLETED";
 
-  const isClosed =
-    status === "REJECTED" ||
+  const isRejected =
+    status === "REJECTED";
+
+  const isCancelled =
     status === "CANCELLED";
+
+  const availableActions =
+  booking.available_actions ?? {};
+
+  const canAccept =
+    availableActions.can_accept === true;
+
+  const canReject =
+    availableActions.can_reject === true;
+
+  const canComplete =
+    availableActions.can_complete === true;
+
+  const studentName =
+    student?.full_name || "Student";
+
+  const studentInitial =
+    getInitial(studentName, "S");
+
+  const acceptError =
+    acceptMutation.error?.response
+      ?.data?.message ||
+    acceptMutation.error?.message ||
+    null;
+
+  const rejectError =
+    rejectMutation.error?.response
+      ?.data?.message ||
+    rejectMutation.error?.message ||
+    null;
+
+  const completeError =
+    completeMutation.error?.response
+      ?.data?.message ||
+    completeMutation.error?.message ||
+    null;
 
   const isMutationPending =
     acceptMutation.isPending ||
     rejectMutation.isPending ||
     completeMutation.isPending;
-
-  const acceptError =
-    acceptMutation.error?.response?.data?.message ||
-    acceptMutation.error?.message ||
-    null;
-
-  const rejectError =
-    rejectMutation.error?.response?.data?.message ||
-    rejectMutation.error?.message ||
-    null;
-
-  const completeError =
-    completeMutation.error?.response?.data?.message ||
-    completeMutation.error?.message ||
-    null;
 
   const handleAccept = async () => {
     try {
@@ -133,7 +167,7 @@ const TutorBookingDetailsPage = () => {
         booking.booking_id
       );
     } catch {
-      // Mutation error is rendered below.
+      return;
     }
   };
 
@@ -158,7 +192,7 @@ const TutorBookingDetailsPage = () => {
       setRejectionReason("");
       setShowRejectForm(false);
     } catch {
-      // Mutation error is rendered below.
+      return;
     }
   };
 
@@ -168,14 +202,13 @@ const TutorBookingDetailsPage = () => {
         booking.booking_id
       );
     } catch {
-      // Mutation error is rendered below.
+      return;
     }
   };
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6">
-      {/* Header */}
-      <section>
+    <div className="mx-auto w-full max-w-6xl">
+      <div className="mb-8">
         <Link href="/tutor/bookings">
           <Button
             type="button"
@@ -190,337 +223,107 @@ const TutorBookingDetailsPage = () => {
               ←
             </span>
 
-            <span>Back to bookings</span>
+            <span>
+              Back to bookings
+            </span>
           </Button>
         </Link>
+      </div>
 
-        <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
+      <section className="mb-6 flex flex-col gap-4 border-b border-[#e5e7eb] pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-black sm:text-3xl">
+            Booking details
+          </h1>
 
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-black">
-              Booking details
-            </h1>
-
-            <p className="mt-2 text-sm leading-6 text-[#626770]">
-              Review the lesson information and manage the current booking.
-            </p>
-          </div>
-
-          <span className="w-fit rounded-md border border-[#e5e7eb] bg-[#fafbfc] px-3 py-1.5 text-xs font-medium text-[#5c5f60]">
-            {status || "Unknown"}
-          </span>
         </div>
-      </section>
 
-      {/* Main summary */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#8a8e95]">
-                Student
-              </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge
+            variant={
+              BOOKING_STATUS_VARIANTS[status] ??
+              "secondary"
+            }
+          >
+            {BOOKING_STATUS[status] ??
+              status}
+          </Badge>
 
-              <p className="mt-2 text-sm font-semibold text-black">
-                {studentUser?.full_name ||
-                  "—"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#8a8e95]">
-                Subject
-              </p>
-
-              <p className="mt-2 text-sm font-semibold text-black">
-                {subject?.subject_name ||
-                  "—"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#8a8e95]">
-                Lesson date
-              </p>
-
-              <p className="mt-2 text-sm font-semibold text-black">
-                {formatBookingDate(
-                  booking.booking_date
-                )}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#8a8e95]">
-                Lesson rate
-              </p>
-
-              <p className="mt-2 text-sm font-semibold text-black">
-                {formatBookingCurrency(
-                  booking.booked_hourly_rate
-                )}
-                <span className="ml-1 text-xs font-normal text-[#6b7280]">
-                  / hr
-                </span>
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Student + lesson */}
-      <section className="grid gap-6 lg:grid-cols-2">
-        {/* Student */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Student
-            </CardTitle>
-
-            <CardDescription>
-              Student information associated with
-              this booking.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#f0f3ff] text-sm font-semibold text-[#3949ab]">
-                {studentUser?.full_name
-                  ?.charAt(0)
-                  ?.toUpperCase() || "S"}
-              </div>
-
-              <div>
-                <p className="text-base font-semibold text-black">
-                  {studentUser?.full_name ||
-                    "Student"}
-                </p>
-
-                <p className="mt-1 text-sm text-[#626770]">
-                  {studentUser?.city ||
-                    "City unavailable"}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Schedule */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Schedule
-            </CardTitle>
-
-            <CardDescription>
-              Scheduled lesson time and recurring
-              availability.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#8a8e95]">
-                  Start
-                </p>
-
-                <p className="mt-2 text-sm font-medium text-black">
-                  {formatBookingDateTime(
-                    booking.booking_start
-                  )}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#8a8e95]">
-                  End
-                </p>
-
-                <p className="mt-2 text-sm font-medium text-black">
-                  {booking.booking_end
-                    ? formatBookingDateTime(
-                        booking.booking_end
-                      )
-                    : "—"}
-                </p>
-              </div>
-
-              <div className="sm:col-span-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#8a8e95]">
-                  Availability
-                </p>
-
-                <p className="mt-2 text-sm font-medium text-black">
-                  {availability
-                    ? `${getDayName(
-                        availability.day_of_week
-                      )} · ${formatTimeValue(
-                        availability.start_time
-                      )} – ${formatTimeValue(
-                        availability.end_time
-                      )}`
-                    : "—"}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
-
-      {/* Student message */}
-      {booking.intro_message && (
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Student message
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent>
-            <div className="rounded-lg border border-[#e5e7eb] bg-[#fafbfc] px-4 py-3">
-              <p className="whitespace-pre-wrap text-sm leading-6 text-[#33373d]">
-                {booking.intro_message}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Meeting */}
-      {booking.meeting_link && (
-        <Card>
-          <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-black">
-                Meeting
-              </p>
-
-              <p className="mt-1 text-sm text-[#626770]">
-                Join the scheduled lesson.
-              </p>
-            </div>
-
-            <a
-              href={booking.meeting_link}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <Button>
-                Open meeting
-              </Button>
-            </a>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Rejection reason */}
-      {booking.rejection_reason && (
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Rejection reason
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent>
-            <div className="rounded-lg border border-[#e5e7eb] bg-[#fafbfc] px-4 py-3">
-              <p className="whitespace-pre-wrap text-sm leading-6 text-[#33373d]">
-                {booking.rejection_reason}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Cancellation */}
-      {booking.cancelled_at && (
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Cancellation
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent className="grid gap-5 sm:grid-cols-2">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#8a8e95]">
-                Cancelled by
-              </p>
-
-              <p className="mt-2 text-sm font-medium text-black">
-                {booking.cancelled_by ||
-                  "—"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#8a8e95]">
-                Cancelled at
-              </p>
-
-              <p className="mt-2 text-sm font-medium text-black">
-                {formatBookingDateTime(
-                  booking.cancelled_at
-                )}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            Actions
-          </CardTitle>
-
-          <CardDescription>
-            Available actions for this booking.
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          {isPending &&
+          {canAccept &&
             !showRejectForm && (
-              <div className="flex flex-col gap-3 sm:flex-row">
+              <>
                 <Button
                   type="button"
+                  variant="outline"
                   onClick={handleAccept}
-                  disabled={isMutationPending}
+                  disabled={
+                    isMutationPending
+                  }
                 >
                   {acceptMutation.isPending
                     ? "Accepting..."
                     : "Accept booking"}
                 </Button>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() =>
-                    setShowRejectForm(true)
-                  }
-                  disabled={isMutationPending}
-                >
-                  Reject booking
-                </Button>
-              </div>
+                {canReject && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() =>
+                      setShowRejectForm(true)
+                    }
+                    disabled={
+                      isMutationPending
+                    }
+                  >
+                    Reject booking
+                  </Button>
+                )}
+              </>
             )}
 
-          {isPending &&
-            showRejectForm && (
-              <div className="space-y-5">
-                <div>
-                  <p className="text-sm font-semibold text-black">
-                    Reject booking
-                  </p>
+          {canComplete && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleComplete}
+              disabled={
+                isMutationPending
+              }
+            >
+              {completeMutation.isPending
+                ? "Completing..."
+                : "Mark completed"}
+            </Button>
+          )}
+        </div>
+      </section>
 
-                  <p className="mt-1 text-sm text-[#626770]">
-                    Provide a reason for the student.
-                  </p>
-                </div>
+      {(acceptError ||
+        completeError) && (
+        <div className="mb-6 rounded-lg border border-[#ffdad6] bg-[#fff8f7] px-4 py-3">
+          <p className="text-sm text-[#93000a]">
+            {acceptError ||
+              completeError}
+          </p>
+        </div>
+      )}
+
+      {canReject &&
+        showRejectForm && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>
+                Reject booking
+              </CardTitle>
+            </CardHeader>
+
+            <CardContent>
+              <div className="space-y-5">
+                <p className="text-sm text-[#626770]">
+                  Provide a reason for the
+                  student.
+                </p>
 
                 <Textarea
                   id="rejection_reason"
@@ -542,8 +345,12 @@ const TutorBookingDetailsPage = () => {
                     type="button"
                     variant="outline"
                     onClick={() => {
-                      setShowRejectForm(false);
-                      setRejectionReason("");
+                      setShowRejectForm(
+                        false
+                      );
+                      setRejectionReason(
+                        ""
+                      );
                       rejectMutation.reset();
                     }}
                     disabled={
@@ -555,6 +362,7 @@ const TutorBookingDetailsPage = () => {
 
                   <Button
                     type="button"
+                    variant="outline"
                     onClick={handleReject}
                     disabled={
                       rejectMutation.isPending ||
@@ -567,80 +375,331 @@ const TutorBookingDetailsPage = () => {
                   </Button>
                 </div>
               </div>
-            )}
+            </CardContent>
+          </Card>
+        )}
 
-          {isAccepted && (
-            <div className="space-y-4">
-              {completeError && (
-                <div className="rounded-lg border border-[#ffdad6] bg-[#fff8f7] px-4 py-3">
-                  <p className="text-sm text-[#93000a]">
-                    {completeError}
-                  </p>
-                </div>
-              )}
+      <section className="grid gap-4 sm:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              Student
+            </CardTitle>
+          </CardHeader>
 
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-medium text-black">
-                    Lesson accepted
-                  </p>
+          <CardContent>
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f0f3ff] text-sm font-semibold text-[#3949ab]">
+                {studentInitial}
+              </div>
 
-                  <p className="mt-1 text-sm text-[#626770]">
-                    Mark the booking completed after the
-                    lesson has finished.
-                  </p>
-                </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-black">
+                  {studentName}
+                </p>
 
-                <Button
-                  type="button"
-                  onClick={handleComplete}
-                  disabled={isMutationPending}
-                >
-                  {completeMutation.isPending
-                    ? "Completing..."
-                    : "Mark completed"}
-                </Button>
+                {student?.city && (
+                  <div className="mt-1 flex items-center gap-1.5 text-xs text-[#626770]">
+                    <MapPin
+                      aria-hidden="true"
+                      className="h-3.5 w-3.5"
+                    />
+
+                    <span>
+                      {student.city}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
-          )}
+          </CardContent>
+        </Card>
 
-          {isCompleted && (
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-black">
-                  Lesson completed
-                </p>
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              Subject
+            </CardTitle>
+          </CardHeader>
 
-                <p className="mt-1 text-sm text-[#626770]">
-                  This booking is complete.
-                </p>
-              </div>
-            </div>
-          )}
+          <CardContent>
+            <p className="text-sm font-semibold text-black">
+              {subject?.subject_name ||
+                "Subject unavailable"}
+            </p>
 
-          {isClosed && (
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-black">
-                  Booking closed
-                </p>
+            <div className="mt-4 border-t border-[#e5e7eb] pt-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#8a8e95]">
+                Hourly rate
+              </p>
 
-                <p className="mt-1 text-sm text-[#626770]">
-                  No further actions are available.
-                </p>
-              </div>
-            </div>
-          )}
+              <p className="mt-1.5 text-lg font-semibold text-black">
+                {formatBookingCurrency(
+                  booking.booked_hourly_rate
+                )}
 
-          {acceptError && isPending && (
-            <div className="mt-4 rounded-lg border border-[#ffdad6] bg-[#fff8f7] px-4 py-3">
-              <p className="text-sm text-[#93000a]">
-                {acceptError}
+                <span className="ml-1 text-xs font-normal text-[#8a8e95]">
+                  / hr
+                </span>
               </p>
             </div>
-          )}
+          </CardContent>
+        </Card>
+      </section>
+
+      <Card className="mt-4">
+        <CardHeader>
+          <CardTitle>
+            Lesson
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          <div className="grid gap-5 sm:grid-cols-3">
+            <div>
+              <div className="flex items-center gap-2 text-[#8a8e95]">
+                <CalendarDays
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                />
+
+                <p className="text-xs font-semibold uppercase tracking-wide">
+                  Date
+                </p>
+              </div>
+
+              <p className="mt-2 text-sm font-medium text-black">
+                {booking.booking_date
+                  ? formatBookingDate(
+                      booking.booking_date
+                    )
+                  : "—"}
+              </p>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2 text-[#8a8e95]">
+                <Clock3
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                />
+
+                <p className="text-xs font-semibold uppercase tracking-wide">
+                  Start
+                </p>
+              </div>
+
+              <p className="mt-2 text-sm font-medium text-black">
+                {booking.booking_start
+                  ? formatBookingDateTime(
+                      booking.booking_start
+                    )
+                  : "—"}
+              </p>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2 text-[#8a8e95]">
+                <Clock3
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                />
+
+                <p className="text-xs font-semibold uppercase tracking-wide">
+                  End
+                </p>
+              </div>
+
+              <p className="mt-2 text-sm font-medium text-black">
+                {booking.booking_end
+                  ? formatBookingDateTime(
+                      booking.booking_end
+                    )
+                  : "—"}
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
+
+      {availability && (
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle>
+              Availability slot
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <div className="grid gap-5 sm:grid-cols-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#8a8e95]">
+                  Day
+                </p>
+
+                <p className="mt-1.5 text-sm font-medium text-black">
+                  {DAYS_OF_WEEK_BY_NUMBER[
+                    availability.day_of_week
+                  ] ??
+                    availability.day_of_week ??
+                    "—"}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#8a8e95]">
+                  Start time
+                </p>
+
+                <p className="mt-1.5 text-sm font-medium text-black">
+                  {formatTimeValue(
+                    availability.start_time
+                  ) || "—"}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#8a8e95]">
+                  End time
+                </p>
+
+                <p className="mt-1.5 text-sm font-medium text-black">
+                  {formatTimeValue(
+                    availability.end_time
+                  ) || "—"}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {booking.intro_message && (
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle>
+              Introduction message
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <div className="rounded-lg border border-[#e5e7eb] bg-[#fafbfc] px-4 py-4">
+              <div className="flex gap-3">
+                <MessageSquare
+                  aria-hidden="true"
+                  className="mt-0.5 h-4 w-4 shrink-0 text-[#8a8e95]"
+                />
+
+                <p className="whitespace-pre-wrap text-sm leading-7 text-[#33373d]">
+                  {booking.intro_message}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {booking.meeting_link && (
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle>
+              Session
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <a
+              href={booking.meeting_link}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Button
+                type="button"
+                className="gap-2"
+              >
+                <Video
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                />
+
+                Join lesson
+              </Button>
+            </a>
+          </CardContent>
+        </Card>
+      )}
+
+      {isRejected &&
+        booking.rejection_reason && (
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>
+                Rejection reason
+              </CardTitle>
+            </CardHeader>
+
+            <CardContent>
+              <p className="whitespace-pre-wrap text-sm leading-7 text-[#33373d]">
+                {booking.rejection_reason}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+      {isCancelled && (
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle>
+              Cancellation
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#8a8e95]">
+                  Cancelled by
+                </p>
+
+                <p className="mt-1.5 text-sm font-medium text-black">
+                  {booking.cancelled_by ||
+                    "—"}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#8a8e95]">
+                  Cancelled at
+                </p>
+
+                <p className="mt-1.5 text-sm font-medium text-black">
+                  {booking.cancelled_at
+                    ? formatBookingDateTime(
+                        booking.cancelled_at
+                      )
+                    : "—"}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {isCompleted && (
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle>
+              Session status
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <p className="text-sm text-[#626770]">
+              This lesson has been completed.
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

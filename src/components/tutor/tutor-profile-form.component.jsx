@@ -22,20 +22,9 @@ import {
   useUpdateTutorProfile,
 } from "../../hooks";
 
-const TEACHING_MODE_OPTIONS = [
-  {
-    value: "ONLINE",
-    label: "Online",
-  },
-  {
-    value: "IN_PERSON",
-    label: "In person",
-  },
-  {
-    value: "BOTH",
-    label: "Online & in person",
-  },
-];
+import {
+  TEACHING_MODES
+} from "@/constants" 
 
 const TutorProfile = () => {
   const {
@@ -175,7 +164,7 @@ const TutorProfile = () => {
                   event.target.value
                 )
               }
-              options={TEACHING_MODE_OPTIONS}
+              options={TEACHING_MODES}
             />
           </div>
 

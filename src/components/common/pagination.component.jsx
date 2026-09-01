@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+
+import { Button } from "@/components/common";
+
 const Pagination = ({
   currentPage = 1,
   totalPages = 1,
@@ -22,60 +29,70 @@ const Pagination = ({
   };
 
   return (
-    <nav
-      className="flex items-center justify-center gap-2"
-      aria-label="Pagination"
-    >
-      <button
-        type="button"
-        onClick={() =>
-          goToPage(currentPage - 1)
-        }
-        disabled={currentPage === 1}
-        className="rounded-md border border-[#e5e7eb] bg-white px-3.5 py-2 text-sm font-medium text-[#151c27] transition hover:bg-[#f0f3ff] disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        Previous
-      </button>
+    <div className="flex items-center justify-between border-t border-[#e5e7eb] pt-5">
+      <p className="text-sm text-[#626770]">
+        Page{" "}
+        <span className="font-medium text-black">
+          {currentPage}
+        </span>{" "}
+        of{" "}
+        <span className="font-medium text-black">
+          {totalPages}
+        </span>
+      </p>
 
-      <div className="flex items-center gap-1">
-        {Array.from(
-          { length: totalPages },
-          (_, index) => index + 1
-        ).map((page) => (
-          <button
-            key={page}
-            type="button"
-            onClick={() => goToPage(page)}
-            aria-current={
-              page === currentPage
-                ? "page"
-                : undefined
-            }
-            className={[
-              "flex h-9 min-w-9 items-center justify-center rounded-md px-3 text-sm font-medium transition",
-              page === currentPage
-                ? "bg-black text-white"
-                : "text-[#5c5f60] hover:bg-[#f0f3ff] hover:text-black",
-            ].join(" ")}
-          >
-            {page}
-          </button>
-        ))}
+      <div className="inline-flex items-center rounded-lg border border-[#e5e7eb] bg-white p-1">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() =>
+            goToPage(currentPage - 1)
+          }
+          disabled={currentPage === 1}
+          className="h-9 gap-1.5 px-3"
+        >
+          <ChevronLeft
+            aria-hidden="true"
+            className="h-4 w-4"
+          />
+
+          <span className="hidden sm:inline">
+            Previous
+          </span>
+        </Button>
+
+        <div className="mx-1 h-5 w-px bg-[#e5e7eb]" />
+
+        <div className="flex h-9 min-w-12 items-center justify-center px-3 text-sm font-medium text-black">
+          {currentPage}
+        </div>
+
+        <div className="mx-1 h-5 w-px bg-[#e5e7eb]" />
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() =>
+            goToPage(currentPage + 1)
+          }
+          disabled={
+            currentPage === totalPages
+          }
+          className="h-9 gap-1.5 px-3"
+        >
+          <span className="hidden sm:inline">
+            Next
+          </span>
+
+          <ChevronRight
+            aria-hidden="true"
+            className="h-4 w-4"
+          />
+        </Button>
       </div>
-
-      <button
-        type="button"
-        onClick={() =>
-          goToPage(currentPage + 1)
-        }
-        disabled={
-          currentPage === totalPages
-        }
-        className="rounded-md border border-[#e5e7eb] bg-white px-3.5 py-2 text-sm font-medium text-[#151c27] transition hover:bg-[#f0f3ff] disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        Next
-      </button>
-    </nav>
+    </div>
   );
 };
 

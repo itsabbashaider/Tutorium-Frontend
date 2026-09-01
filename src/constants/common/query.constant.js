@@ -60,6 +60,8 @@ export const QUERY_KEYS = {
   REVIEW: {
     MY_LIST: ["my-reviews"],
 
+    STUDENT_MY_LIST: ["student-my-reviews"],
+
     TUTOR_LIST: (tutor_id) => [
       "tutor-reviews",
       tutor_id,
