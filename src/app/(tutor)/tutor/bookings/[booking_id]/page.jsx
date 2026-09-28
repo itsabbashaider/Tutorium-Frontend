@@ -22,6 +22,7 @@ import {
   ErrorState,
   Loading,
   Textarea,
+  UserAvatar,
 } from "@/components/common";
 
 import {
@@ -36,7 +37,6 @@ import {
   formatBookingDate,
   formatBookingDateTime,
   formatTimeValue,
-  getInitial
 } from "@/utils";
 
 import {
@@ -134,9 +134,6 @@ const TutorBookingDetailsPage = () => {
 
   const studentName =
     student?.full_name || "Student";
-
-  const studentInitial =
-    getInitial(studentName, "S");
 
   const acceptError =
     acceptMutation.error?.response
@@ -389,9 +386,12 @@ const TutorBookingDetailsPage = () => {
 
           <CardContent>
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f0f3ff] text-sm font-semibold text-[#3949ab]">
-                {studentInitial}
-              </div>
+              <UserAvatar
+                avatarUrl={student?.avatar_url}
+                name={studentName}
+                size="md"
+                className="h-9 w-9"
+              />
 
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-black">

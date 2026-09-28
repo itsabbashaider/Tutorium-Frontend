@@ -4,8 +4,6 @@ import Link from "next/link";
 import { useState } from "react";
 import {
   CalendarDays,
-  ChevronLeft,
-  ChevronRight,
   Clock3,
   UserRound,
 } from "lucide-react";
@@ -20,6 +18,7 @@ import {
   Loading,
   Pagination,
   Textarea,
+  UserAvatar,
 } from "@/components/common";
 
 import {
@@ -32,7 +31,6 @@ import {
 import {
   formatBookingDate,
   formatBookingTime,
-  getInitial,
 } from "@/utils";
 
 const PAGE_SIZE = 10;
@@ -313,9 +311,14 @@ const TutorBookingsPage = () => {
                   <div className="p-5 sm:p-6">
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                       <div className="flex min-w-0 items-start gap-3.5">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f0f3ff] text-sm font-semibold text-[#3949ab]">
-                          {getInitial(studentName, "S")}
-                        </div>
+                        <UserAvatar
+                          avatarUrl={
+                            student?.avatar_url
+                          }
+                          name={studentName}
+                          size="md"
+                          className="h-9 w-9"
+                        />
 
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">

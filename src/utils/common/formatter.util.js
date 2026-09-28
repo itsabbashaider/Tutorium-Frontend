@@ -39,17 +39,6 @@ export const formatTeachingMode = (mode) => {
     );
 };
 
-export const getInitial = (
-  value,
-  fallback = "?"
-) => {
-  return (
-    String(value || "")
-      .trim()
-      .charAt(0)
-      .toUpperCase() || fallback
-  );
-};
 
 export const formatRating = (rating) => {
   const value = Number(rating);

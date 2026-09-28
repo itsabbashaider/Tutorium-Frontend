@@ -9,6 +9,7 @@ export * from "./common/use-subject.hook";
 export * from "./common/use-review.hook";
 
 export * from "./student/use-student.hook";
+export * from "./student/use-student-route-id.hook";
 
 export * from "./tutor/use-tutor-profile.hook";
 export * from "./tutor/use-tutor-subject.hook";

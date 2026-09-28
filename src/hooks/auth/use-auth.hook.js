@@ -1,16 +1,8 @@
 "use client";
 
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import {
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { useRef, useState } from "react";
 
@@ -22,8 +14,7 @@ export const useAuth = () => {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
 
-  const [signedOutPath, setSignedOutPath] =
-    useState(null);
+  const [signedOutPath, setSignedOutPath] = useState(null);
 
   const authAbortControllerRef = useRef(null);
 
@@ -45,8 +36,7 @@ export const useAuth = () => {
   |--------------------------------------------------------------------------
   */
 
-  const isSignedOut =
-    signedOutPath === pathname;
+  const isSignedOut = signedOutPath === pathname;
 
   /*
   |--------------------------------------------------------------------------
@@ -70,9 +60,7 @@ export const useAuth = () => {
       }
     },
 
-    enabled:
-      !isPublicRoute &&
-      !isSignedOut,
+    enabled: !isPublicRoute && !isSignedOut,
 
     retry: false,
 
@@ -94,26 +82,17 @@ export const useAuth = () => {
 
   const loginMutation = useMutation({
     mutationFn: async (payload) => {
-      const controller =
-        new AbortController();
+      const controller = new AbortController();
 
-      authAbortControllerRef.current =
-        controller;
+      authAbortControllerRef.current = controller;
 
       try {
-        return await authService.login(
-          payload,
-          {
-            signal: controller.signal,
-          }
-        );
+        return await authService.login(payload, {
+          signal: controller.signal,
+        });
       } finally {
-        if (
-          authAbortControllerRef.current ===
-          controller
-        ) {
-          authAbortControllerRef.current =
-            null;
+        if (authAbortControllerRef.current === controller) {
+          authAbortControllerRef.current = null;
         }
       }
     },
@@ -121,50 +100,41 @@ export const useAuth = () => {
     onSuccess: async () => {
       setSignedOutPath(null);
 
-      const me =
-        await queryClient.fetchQuery({
-          queryKey: ["me"],
+      const me = await queryClient.fetchQuery({
+        queryKey: ["me"],
 
-          queryFn: async () => {
-            try {
-              return await authService.getMe();
-            } catch (error) {
-              if (
-                error?.response?.status === 401
-              ) {
-                return null;
-              }
-
-              throw error;
+        queryFn: async () => {
+          try {
+            return await authService.getMe();
+          } catch (error) {
+            if (error?.response?.status === 401) {
+              return null;
             }
-          },
 
-          staleTime: Infinity,
-        });
+            throw error;
+          }
+        },
 
-      const redirect =
-        searchParams.get("redirect");
+        staleTime: Infinity,
+      });
 
-      if (
-        redirect &&
-        redirect.startsWith("/") &&
-        !redirect.startsWith("//")
-      ) {
+      const redirect = searchParams.get("redirect");
+
+      if (redirect && redirect.startsWith("/") && !redirect.startsWith("//")) {
         router.replace(redirect);
         return;
       }
 
       if (me?.role === "STUDENT") {
-        router.replace(
-          "/student/dashboard"
-        );
+        const studentId =
+          me.student_profile_id || me.student_id || me.user_id || me.id;
+
+        router.replace(`/student/${studentId}/dashboard`);
         return;
       }
 
       if (me?.role === "TUTOR") {
-        router.replace(
-          "/tutor/dashboard"
-        );
+        router.replace("/tutor/dashboard");
       }
     },
   });
@@ -177,26 +147,17 @@ export const useAuth = () => {
 
   const signupMutation = useMutation({
     mutationFn: async (payload) => {
-      const controller =
-        new AbortController();
+      const controller = new AbortController();
 
-      authAbortControllerRef.current =
-        controller;
+      authAbortControllerRef.current = controller;
 
       try {
-        return await authService.signup(
-          payload,
-          {
-            signal: controller.signal,
-          }
-        );
+        return await authService.signup(payload, {
+          signal: controller.signal,
+        });
       } finally {
-        if (
-          authAbortControllerRef.current ===
-          controller
-        ) {
-          authAbortControllerRef.current =
-            null;
+        if (authAbortControllerRef.current === controller) {
+          authAbortControllerRef.current = null;
         }
       }
     },
@@ -212,8 +173,7 @@ export const useAuth = () => {
     if (authAbortControllerRef.current) {
       authAbortControllerRef.current.abort();
 
-      authAbortControllerRef.current =
-        null;
+      authAbortControllerRef.current = null;
     }
 
     loginMutation.reset();
@@ -240,8 +200,7 @@ export const useAuth = () => {
 
           return (
             Array.isArray(key) &&
-            (
-              key[0] === "tutor-dashboard" ||
+            (key[0] === "tutor-dashboard" ||
               key[0] === "student-dashboard" ||
               key[0] === "student-bookings" ||
               key[0] === "tutor-bookings" ||
@@ -254,8 +213,7 @@ export const useAuth = () => {
               key[0] === "tutors" ||
               key[0] === "tutor" ||
               key[0] === "student" ||
-              key[0] === "user"
-            )
+              key[0] === "user")
           );
         },
       });
@@ -276,11 +234,9 @@ export const useAuth = () => {
   |--------------------------------------------------------------------------
   */
 
-  const forgotPasswordMutation =
-    useMutation({
-      mutationFn:
-        authService.forgotPassword,
-    });
+  const forgotPasswordMutation = useMutation({
+    mutationFn: authService.forgotPassword,
+  });
 
   /*
   |--------------------------------------------------------------------------
@@ -288,11 +244,9 @@ export const useAuth = () => {
   |--------------------------------------------------------------------------
   */
 
-  const resetPasswordMutation =
-    useMutation({
-      mutationFn:
-        authService.resetPassword,
-    });
+  const resetPasswordMutation = useMutation({
+    mutationFn: authService.resetPassword,
+  });
 
   /*
   |--------------------------------------------------------------------------
@@ -300,11 +254,9 @@ export const useAuth = () => {
   |--------------------------------------------------------------------------
   */
 
-  const refreshTokenMutation =
-    useMutation({
-      mutationFn:
-        authService.refreshToken,
-    });
+  const refreshTokenMutation = useMutation({
+    mutationFn: authService.refreshToken,
+  });
 
   /*
   |--------------------------------------------------------------------------
@@ -315,11 +267,9 @@ export const useAuth = () => {
   return {
     user: meQuery.data ?? null,
 
-    isAuthenticated:
-      !!meQuery.data,
+    isAuthenticated: !!meQuery.data,
 
-    loading:
-      meQuery.isPending,
+    loading: meQuery.isPending,
 
     meQuery,
 
@@ -332,7 +282,6 @@ export const useAuth = () => {
 
     cancelAuthRequest,
 
-    logout: () =>
-      logoutMutation.mutateAsync(),
+    logout: () => logoutMutation.mutateAsync(),
   };
 };

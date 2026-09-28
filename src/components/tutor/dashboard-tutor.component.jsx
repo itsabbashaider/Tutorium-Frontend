@@ -1,6 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import {
+  Clock,
+  CheckCircle2,
+  CircleCheckBig,
+  XCircle,
+  Ban,
+} from "lucide-react";
 
 import {
   Badge,
@@ -173,22 +180,42 @@ const TutorDashboard = () => {
     {
       label: "Pending",
       value: pending_bookings ?? 0,
+      icon: Clock,
+      accent: "text-amber-600",
+      bg: "bg-amber-50",
+      border: "border-amber-100",
     },
     {
       label: "Accepted",
       value: accepted_bookings ?? 0,
+      icon: CheckCircle2,
+      accent: "text-blue-600",
+      bg: "bg-blue-50",
+      border: "border-blue-100",
     },
     {
       label: "Completed",
       value: completed_bookings ?? 0,
+      icon: CircleCheckBig,
+      accent: "text-emerald-600",
+      bg: "bg-emerald-50",
+      border: "border-emerald-100",
     },
     {
       label: "Rejected",
       value: rejected_bookings ?? 0,
+      icon: XCircle,
+      accent: "text-red-600",
+      bg: "bg-red-50",
+      border: "border-red-100",
     },
     {
       label: "Cancelled",
       value: cancelled_bookings ?? 0,
+      icon: Ban,
+      accent: "text-[#8a8e95]",
+      bg: "bg-[#f4f5f6]",
+      border: "border-[#e5e7eb]",
     },
   ];
 
@@ -302,18 +329,29 @@ const TutorDashboard = () => {
         <CardContent>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             {bookingOverview.map(
-              ({ label, value }) => (
+              ({ label, value, icon: Icon, accent, bg, border }) => (
                 <div
                   key={label}
-                  className="rounded-lg border border-[#e5e7eb] bg-[#fafbfc] p-4"
+                  className={`flex items-center justify-between rounded-xl border ${border} ${bg} p-4 transition-shadow hover:shadow-sm`}
                 >
-                  <p className="text-sm font-medium text-[#626770]">
-                    {label}
-                  </p>
+                  <div>
+                    <p className="text-sm font-medium text-[#626770]">
+                      {label}
+                    </p>
 
-                  <p className="mt-2 text-2xl font-semibold text-black">
-                    {value}
-                  </p>
+                    <p className="mt-1 text-2xl font-semibold tabular-nums text-black">
+                      {value}
+                    </p>
+                  </div>
+
+                  <div
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/70 ${accent}`}
+                  >
+                    <Icon
+                      className="h-4 w-4"
+                      strokeWidth={2.25}
+                    />
+                  </div>
                 </div>
               )
             )}

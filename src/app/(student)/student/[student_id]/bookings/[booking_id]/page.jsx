@@ -20,49 +20,36 @@ import {
   CardTitle,
   ErrorState,
   Loading,
+  UserAvatar,
 } from "@/components/common";
 
 import StudentReviewModal from "@/components/student/review-modal.component";
 
-import {
-  useBooking,
-  useCancelBooking,
-} from "@/hooks";
+import { useBooking, useCancelBooking, useStudentRouteId } from "@/hooks";
 
 import {
   formatBookingCurrency,
   formatBookingDate,
   formatBookingDateTime,
   formatBookingTime,
-  getInitial,
 } from "@/utils";
 
-import {
-  DAYS_OF_WEEK_BY_NUMBER,
-} from "@/constants";
+import { DAYS_OF_WEEK_BY_NUMBER } from "@/constants";
 
-import {
-  BOOKING_STATUS_VARIANTS,
-  BOOKING_STATUS,
-} from "@/constants"
+import { BOOKING_STATUS_VARIANTS, BOOKING_STATUS } from "@/constants";
 
 const StudentBookingDetailsPage = () => {
+  const studentId = useStudentRouteId();
+
   const params = useParams();
 
   const bookingId = params?.booking_id;
 
-  const [reviewModalOpen, setReviewModalOpen] =
-    useState(false);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
-  const {
-    data: booking,
-    isLoading,
-    isError,
-    error,
-  } = useBooking(bookingId);
+  const { data: booking, isLoading, isError, error } = useBooking(bookingId);
 
-  const cancelMutation =
-    useCancelBooking();
+  const cancelMutation = useCancelBooking();
 
   if (isLoading) {
     return <Loading />;
@@ -90,39 +77,27 @@ const StudentBookingDetailsPage = () => {
     );
   }
 
-  const tutor =
-    booking.tutor?.user ?? null;
+  const tutor = booking.tutor?.user ?? null;
 
-  const subject =
-    booking.subject ?? null;
+  const subject = booking.subject ?? null;
 
-  const availability =
-    booking.availability ?? null;
+  const availability = booking.availability ?? null;
 
-  const status =
-    booking.status || "UNKNOWN";
+  const status = booking.status || "UNKNOWN";
 
-  const isCompleted =
-    status === "COMPLETED";
+  const isCompleted = status === "COMPLETED";
 
-  const availableActions =
-    booking.available_actions ?? {};
+  const availableActions = booking.available_actions ?? {};
 
-  const canCancel =
-    availableActions.can_cancel === true;
+  const canCancel = availableActions.can_cancel === true;
 
-  const canReview =
-    availableActions.can_review === true;
+  const canReview = availableActions.can_review === true;
 
-  const tutorName =
-    tutor?.full_name || "Tutor";
-
+  const tutorName = tutor?.full_name || "Tutor";
 
   const handleCancel = async () => {
     try {
-      await cancelMutation.mutateAsync(
-        booking.booking_id
-      );
+      await cancelMutation.mutateAsync(booking.booking_id);
     } catch {
       return;
     }
@@ -132,7 +107,7 @@ const StudentBookingDetailsPage = () => {
     <>
       <div className="mx-auto w-full max-w-6xl">
         <div className="mb-8">
-          <Link href="/student/bookings">
+          <Link href={`/student/${studentId}/bookings`}>
             <Button
               type="button"
               variant="ghost"
@@ -146,9 +121,7 @@ const StudentBookingDetailsPage = () => {
                 ←
               </span>
 
-              <span>
-                Back to bookings
-              </span>
+              <span>Back to bookings</span>
             </Button>
           </Link>
         </div>
@@ -158,18 +131,11 @@ const StudentBookingDetailsPage = () => {
             <h1 className="text-2xl font-semibold tracking-tight text-black sm:text-3xl">
               Booking details
             </h1>
-
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Badge
-              variant={
-                BOOKING_STATUS_VARIANTS[status] ??
-                "secondary"
-              }
-            >
-              {BOOKING_STATUS[status] ??
-                status}
+            <Badge variant={BOOKING_STATUS_VARIANTS[status] ?? "secondary"}>
+              {BOOKING_STATUS[status] ?? status}
             </Badge>
 
             {canCancel && (
@@ -177,23 +143,14 @@ const StudentBookingDetailsPage = () => {
                 type="button"
                 variant="outline"
                 onClick={handleCancel}
-                disabled={
-                  cancelMutation.isPending
-                }
+                disabled={cancelMutation.isPending}
               >
-                {cancelMutation.isPending
-                  ? "Cancelling..."
-                  : "Cancel booking"}
+                {cancelMutation.isPending ? "Cancelling..." : "Cancel booking"}
               </Button>
             )}
 
             {canReview && (
-              <Button
-                type="button"
-                onClick={() =>
-                  setReviewModalOpen(true)
-                }
-              >
+              <Button type="button" onClick={() => setReviewModalOpen(true)}>
                 Give review
               </Button>
             )}
@@ -203,8 +160,7 @@ const StudentBookingDetailsPage = () => {
         {cancelMutation.error && (
           <div className="mb-6 rounded-lg border border-[#ffdad6] bg-[#fff8f7] px-4 py-3">
             <p className="text-sm text-[#93000a]">
-              {cancelMutation.error?.response
-                ?.data?.message ||
+              {cancelMutation.error?.response?.data?.message ||
                 cancelMutation.error?.message ||
                 "Unable to cancel this booking."}
             </p>
@@ -214,16 +170,18 @@ const StudentBookingDetailsPage = () => {
         <section className="grid gap-4 sm:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>
-                Tutor
-              </CardTitle>
+              <CardTitle>Tutor</CardTitle>
             </CardHeader>
 
             <CardContent>
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f0f3ff] text-sm font-semibold text-[#3949ab]">
-                  {getInitial(tutorName, "T")}
-                </div>
+                <UserAvatar
+                  avatarUrl={tutor?.avatar_url || ""}
+                  name={tutorName}
+                  fallbackChar="T"
+                  size="md"
+                  className="h-11 w-11"
+                />
 
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-black">
@@ -232,14 +190,9 @@ const StudentBookingDetailsPage = () => {
 
                   {tutor?.city && (
                     <div className="mt-1 flex items-center gap-1.5 text-xs text-[#626770]">
-                      <MapPin
-                        aria-hidden="true"
-                        className="h-3.5 w-3.5"
-                      />
+                      <MapPin aria-hidden="true" className="h-3.5 w-3.5" />
 
-                      <span>
-                        {tutor.city}
-                      </span>
+                      <span>{tutor.city}</span>
                     </div>
                   )}
                 </div>
@@ -249,15 +202,12 @@ const StudentBookingDetailsPage = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>
-                Subject
-              </CardTitle>
+              <CardTitle>Subject</CardTitle>
             </CardHeader>
 
             <CardContent>
               <p className="text-sm font-semibold text-black">
-                {subject?.subject_name ||
-                  "Subject unavailable"}
+                {subject?.subject_name || "Subject unavailable"}
               </p>
 
               <div className="mt-4 border-t border-[#e5e7eb] pt-4">
@@ -266,9 +216,7 @@ const StudentBookingDetailsPage = () => {
                 </p>
 
                 <p className="mt-1.5 text-lg font-semibold text-black">
-                  {formatBookingCurrency(
-                    booking.booked_hourly_rate
-                  )}
+                  {formatBookingCurrency(booking.booked_hourly_rate)}
 
                   <span className="ml-1 text-xs font-normal text-[#8a8e95]">
                     / hr
@@ -281,19 +229,14 @@ const StudentBookingDetailsPage = () => {
 
         <Card className="mt-4">
           <CardHeader>
-            <CardTitle>
-              Lesson
-            </CardTitle>
+            <CardTitle>Lesson</CardTitle>
           </CardHeader>
 
           <CardContent>
             <div className="grid gap-5 sm:grid-cols-3">
               <div>
                 <div className="flex items-center gap-2 text-[#8a8e95]">
-                  <CalendarDays
-                    aria-hidden="true"
-                    className="h-4 w-4"
-                  />
+                  <CalendarDays aria-hidden="true" className="h-4 w-4" />
 
                   <p className="text-xs font-semibold uppercase tracking-wide">
                     Date
@@ -302,19 +245,14 @@ const StudentBookingDetailsPage = () => {
 
                 <p className="mt-2 text-sm font-medium text-black">
                   {booking.booking_date
-                    ? formatBookingDate(
-                        booking.booking_date
-                      )
+                    ? formatBookingDate(booking.booking_date)
                     : "—"}
                 </p>
               </div>
 
               <div>
                 <div className="flex items-center gap-2 text-[#8a8e95]">
-                  <Clock3
-                    aria-hidden="true"
-                    className="h-4 w-4"
-                  />
+                  <Clock3 aria-hidden="true" className="h-4 w-4" />
 
                   <p className="text-xs font-semibold uppercase tracking-wide">
                     Start
@@ -323,19 +261,14 @@ const StudentBookingDetailsPage = () => {
 
                 <p className="mt-2 text-sm font-medium text-black">
                   {booking.booking_start
-                    ? formatBookingDateTime(
-                        booking.booking_start
-                      )
+                    ? formatBookingDateTime(booking.booking_start)
                     : "—"}
                 </p>
               </div>
 
               <div>
                 <div className="flex items-center gap-2 text-[#8a8e95]">
-                  <Clock3
-                    aria-hidden="true"
-                    className="h-4 w-4"
-                  />
+                  <Clock3 aria-hidden="true" className="h-4 w-4" />
 
                   <p className="text-xs font-semibold uppercase tracking-wide">
                     End
@@ -344,18 +277,13 @@ const StudentBookingDetailsPage = () => {
 
                 <p className="mt-2 text-sm font-medium text-black">
                   {booking.booking_end
-                    ? formatBookingDateTime(
-                        booking.booking_end
-                      )
+                    ? formatBookingDateTime(booking.booking_end)
                     : "—"}
                 </p>
 
                 {booking.booking_end && (
                   <p className="mt-1 text-xs text-[#6b7280]">
-                    Ends{" "}
-                    {formatBookingTime(
-                      booking.booking_end
-                    )}
+                    Ends {formatBookingTime(booking.booking_end)}
                   </p>
                 )}
               </div>
@@ -366,9 +294,7 @@ const StudentBookingDetailsPage = () => {
         {availability && (
           <Card className="mt-4">
             <CardHeader>
-              <CardTitle>
-                Availability slot
-              </CardTitle>
+              <CardTitle>Availability slot</CardTitle>
             </CardHeader>
 
             <CardContent>
@@ -379,9 +305,7 @@ const StudentBookingDetailsPage = () => {
                   </p>
 
                   <p className="mt-1.5 text-sm font-medium text-black">
-                    {DAYS_OF_WEEK_BY_NUMBER[
-                      availability.day_of_week
-                    ] ??
+                    {DAYS_OF_WEEK_BY_NUMBER[availability.day_of_week] ??
                       availability.day_of_week ??
                       "—"}
                   </p>
@@ -393,8 +317,7 @@ const StudentBookingDetailsPage = () => {
                   </p>
 
                   <p className="mt-1.5 text-sm font-medium text-black">
-                    {availability.start_time ||
-                      "—"}
+                    {availability.start_time || "—"}
                   </p>
                 </div>
 
@@ -404,8 +327,7 @@ const StudentBookingDetailsPage = () => {
                   </p>
 
                   <p className="mt-1.5 text-sm font-medium text-black">
-                    {availability.end_time ||
-                      "—"}
+                    {availability.end_time || "—"}
                   </p>
                 </div>
               </div>
@@ -416,9 +338,7 @@ const StudentBookingDetailsPage = () => {
         {booking.intro_message && (
           <Card className="mt-4">
             <CardHeader>
-              <CardTitle>
-                Introduction message
-              </CardTitle>
+              <CardTitle>Introduction message</CardTitle>
             </CardHeader>
 
             <CardContent>
@@ -438,31 +358,17 @@ const StudentBookingDetailsPage = () => {
           </Card>
         )}
 
-        {(booking.meeting_link ||
-          isCompleted) && (
+        {(booking.meeting_link || isCompleted) && (
           <Card className="mt-4">
             <CardHeader>
-              <CardTitle>
-                Session
-              </CardTitle>
+              <CardTitle>Session</CardTitle>
             </CardHeader>
 
             <CardContent>
               {booking.meeting_link ? (
-                <a
-                  href={booking.meeting_link}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <Button
-                    type="button"
-                    className="gap-2"
-                  >
-                    <Video
-                      aria-hidden="true"
-                      className="h-4 w-4"
-                    />
-
+                <a href={booking.meeting_link} target="_blank" rel="noreferrer">
+                  <Button type="button" className="gap-2">
+                    <Video aria-hidden="true" className="h-4 w-4" />
                     Join lesson
                   </Button>
                 </a>
@@ -475,29 +381,24 @@ const StudentBookingDetailsPage = () => {
           </Card>
         )}
 
-        {status === "REJECTED" &&
-          booking.rejection_reason && (
-            <Card className="mt-4">
-              <CardHeader>
-                <CardTitle>
-                  Rejection reason
-                </CardTitle>
-              </CardHeader>
+        {status === "REJECTED" && booking.rejection_reason && (
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>Rejection reason</CardTitle>
+            </CardHeader>
 
-              <CardContent>
-                <p className="whitespace-pre-wrap text-sm leading-7 text-[#33373d]">
-                  {booking.rejection_reason}
-                </p>
-              </CardContent>
-            </Card>
-          )}
+            <CardContent>
+              <p className="whitespace-pre-wrap text-sm leading-7 text-[#33373d]">
+                {booking.rejection_reason}
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {status === "CANCELLED" && (
           <Card className="mt-4">
             <CardHeader>
-              <CardTitle>
-                Cancellation
-              </CardTitle>
+              <CardTitle>Cancellation</CardTitle>
             </CardHeader>
 
             <CardContent>
@@ -508,8 +409,7 @@ const StudentBookingDetailsPage = () => {
                   </p>
 
                   <p className="mt-1.5 text-sm font-medium text-black">
-                    {booking.cancelled_by ||
-                      "—"}
+                    {booking.cancelled_by || "—"}
                   </p>
                 </div>
 
@@ -520,9 +420,7 @@ const StudentBookingDetailsPage = () => {
 
                   <p className="mt-1.5 text-sm font-medium text-black">
                     {booking.cancelled_at
-                      ? formatBookingDateTime(
-                          booking.cancelled_at
-                        )
+                      ? formatBookingDateTime(booking.cancelled_at)
                       : "—"}
                   </p>
                 </div>
@@ -535,9 +433,7 @@ const StudentBookingDetailsPage = () => {
       <StudentReviewModal
         isOpen={reviewModalOpen}
         booking={booking}
-        onClose={() =>
-          setReviewModalOpen(false)
-        }
+        onClose={() => setReviewModalOpen(false)}
       />
     </>
   );

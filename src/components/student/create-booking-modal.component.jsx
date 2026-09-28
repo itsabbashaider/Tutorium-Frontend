@@ -231,9 +231,7 @@ const StudentCreateBookingModal = ({
     setSelectedSubject(
       nextSubject || null
     );
-
-    setSelectedSlot(null);
-    setSelectedDate("");
+    // Removed unintended resetting of selectedSlot and selectedDate here
   };
 
   const handleSubmit = async (

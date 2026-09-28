@@ -39,7 +39,10 @@ export const useProtectedRoute = ({
       let fallbackPath = "/";
 
       if (user.role === USER_ROLES.STUDENT) {
-        fallbackPath = "/student/dashboard";
+        const studentId =
+          user.student_profile_id || user.student_id || user.user_id || user.id;
+
+        fallbackPath = `/student/${studentId}/dashboard`;
       } else if (user.role === USER_ROLES.TUTOR) {
         fallbackPath = "/tutor/dashboard";
       }

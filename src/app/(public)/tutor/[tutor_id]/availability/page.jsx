@@ -1,10 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  useParams,
-  useRouter,
-} from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
 import {
@@ -18,19 +15,13 @@ import {
   Loading,
 } from "@/components/common";
 
-import {
-  useAuth,
-  useTutor,
-  useTutorPublicAvailability,
-} from "@/hooks";
+import { useAuth, useTutor, useTutorPublicAvailability } from "@/hooks";
 
 import CreateBookingModal from "@/components/student/create-booking-modal.component";
 
 import { DAYS_OF_WEEK } from "@/constants";
 
-import {
-  formatTime,
-} from "@/utils";
+import { formatTime } from "@/utils";
 
 const TutorPublicAvailabilityPage = () => {
   const params = useParams();
@@ -38,22 +29,17 @@ const TutorPublicAvailabilityPage = () => {
 
   const tutorId = params?.tutor_id;
 
-  const [isBookingModalOpen, setIsBookingModalOpen] =
-    useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
-  const {
-    user,
-    isLoading: isAuthLoading,
-  } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const studentId =
+    user?.student_profile_id || user?.student_id || user?.user_id || user?.id;
 
-  const userRole = String(
-    user?.role || ""
-  )
+  const userRole = String(user?.role || "")
     .trim()
     .toUpperCase();
 
-  const isStudent =
-    userRole === "STUDENT";
+  const isStudent = userRole === "STUDENT";
 
   const {
     data: tutor,
@@ -67,15 +53,9 @@ const TutorPublicAvailabilityPage = () => {
     isLoading: isAvailabilityLoading,
     isError: isAvailabilityError,
     error: availabilityError,
-  } = useTutorPublicAvailability(
-    tutorId
-  );
+  } = useTutorPublicAvailability(tutorId);
 
-  if (
-    isAuthLoading ||
-    isTutorLoading ||
-    isAvailabilityLoading
-  ) {
+  if (isAuthLoading || isTutorLoading || isAvailabilityLoading) {
     return <Loading />;
   }
 
@@ -114,55 +94,29 @@ const TutorPublicAvailabilityPage = () => {
     );
   }
 
-  const slots = Array.isArray(
-    availability
-  )
-    ? availability
-    : [];
+  const slots = Array.isArray(availability) ? availability : [];
 
-  const groupedAvailability = DAYS_OF_WEEK.map(
-    (day) => ({
-      ...day,
+  const groupedAvailability = DAYS_OF_WEEK.map((day) => ({
+    ...day,
 
-      slots: slots
-        .filter(
-          (slot) =>
-            Number(slot.day_of_week) ===
-            day.value
-        )
-        .sort((a, b) =>
-          String(
-            a.start_time || ""
-          ).localeCompare(
-            String(
-              b.start_time || ""
-            )
-          )
-        ),
-    })
-  ).filter(
-    (day) => day.slots.length > 0
-  );
+    slots: slots
+      .filter((slot) => Number(slot.day_of_week) === day.value)
+      .sort((a, b) =>
+        String(a.start_time || "").localeCompare(String(b.start_time || "")),
+      ),
+  })).filter((day) => day.slots.length > 0);
 
-  const canBook =
-    isStudent &&
-    tutor.is_bookable === true;
+  const canBook = isStudent && tutor.is_bookable === true;
 
-  const handleBookingSuccess = (
-    booking
-  ) => {
+  const handleBookingSuccess = (booking) => {
     setIsBookingModalOpen(false);
 
     if (booking?.booking_id) {
-      router.push(
-        `/student/bookings/${booking.booking_id}`
-      );
+      router.push(`/student/${studentId}/bookings/${booking.booking_id}`);
       return;
     }
 
-    router.push(
-      "/student/bookings"
-    );
+    router.push(`/student/${studentId}/bookings`);
   };
 
   return (
@@ -184,9 +138,7 @@ const TutorPublicAvailabilityPage = () => {
                 ←
               </span>
 
-              <span>
-                Back to profile
-              </span>
+              <span>Back to profile</span>
             </Button>
           </Link>
         </div>
@@ -209,9 +161,7 @@ const TutorPublicAvailabilityPage = () => {
         {/* Schedule */}
         <Card>
           <CardHeader>
-            <CardTitle>
-              Weekly schedule
-            </CardTitle>
+            <CardTitle>Weekly schedule</CardTitle>
           </CardHeader>
 
           <CardContent>
@@ -222,47 +172,38 @@ const TutorPublicAvailabilityPage = () => {
               />
             ) : (
               <div className="divide-y divide-[#e5e7eb]">
-                {groupedAvailability.map(
-                  (day) => (
-                    <div
-                      key={day.value}
-                      className="flex flex-col gap-4 py-5 first:pt-0 last:pb-0 sm:flex-row sm:items-start"
-                    >
-                      <div className="w-32 shrink-0">
-                        <p className="text-sm font-semibold text-black">
-                          {day.label}
-                        </p>
-                      </div>
-
-                      <div className="flex flex-1 flex-wrap gap-2">
-                        {day.slots.map(
-                          (slot) => (
-                            <div
-                              key={
-                                slot.availability_slot_id ||
-                                `${day.value}-${slot.start_time}-${slot.end_time}`
-                              }
-                              className="rounded-lg border border-[#e5e7eb] bg-[#fafbfc] px-4 py-3"
-                            >
-                              <p className="text-sm font-medium text-black">
-                                {formatTime(
-                                  slot.start_time
-                                )}
-                              </p>
-
-                              <p className="mt-1 text-xs text-[#626770]">
-                                until{" "}
-                                {formatTime(
-                                  slot.end_time
-                                )}
-                              </p>
-                            </div>
-                          )
-                        )}
-                      </div>
+                {groupedAvailability.map((day) => (
+                  <div
+                    key={day.value}
+                    className="flex flex-col gap-4 py-5 first:pt-0 last:pb-0 sm:flex-row sm:items-start"
+                  >
+                    <div className="w-32 shrink-0">
+                      <p className="text-sm font-semibold text-black">
+                        {day.label}
+                      </p>
                     </div>
-                  )
-                )}
+
+                    <div className="flex flex-1 flex-wrap gap-2">
+                      {day.slots.map((slot) => (
+                        <div
+                          key={
+                            slot.availability_slot_id ||
+                            `${day.value}-${slot.start_time}-${slot.end_time}`
+                          }
+                          className="rounded-lg border border-[#e5e7eb] bg-[#fafbfc] px-4 py-3"
+                        >
+                          <p className="text-sm font-medium text-black">
+                            {formatTime(slot.start_time)}
+                          </p>
+
+                          <p className="mt-1 text-xs text-[#626770]">
+                            until {formatTime(slot.end_time)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
@@ -272,9 +213,7 @@ const TutorPublicAvailabilityPage = () => {
         {isStudent && (
           <div className="mt-6 flex flex-col gap-4 border-t border-[#e5e7eb] pt-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-semibold text-black">
-                Book a lesson
-              </p>
+              <p className="text-sm font-semibold text-black">Book a lesson</p>
 
               <p className="mt-1 text-sm text-[#626770]">
                 Select an available time during booking.
@@ -285,11 +224,7 @@ const TutorPublicAvailabilityPage = () => {
               type="button"
               className="h-11 w-full sm:w-auto"
               disabled={!canBook}
-              onClick={() =>
-                setIsBookingModalOpen(
-                  true
-                )
-              }
+              onClick={() => setIsBookingModalOpen(true)}
             >
               {!tutor.is_available
                 ? "Currently unavailable"
@@ -307,14 +242,8 @@ const TutorPublicAvailabilityPage = () => {
           isOpen={isBookingModalOpen}
           tutor={tutor}
           availability={slots}
-          onClose={() =>
-            setIsBookingModalOpen(
-              false
-            )
-          }
-          onSuccess={
-            handleBookingSuccess
-          }
+          onClose={() => setIsBookingModalOpen(false)}
+          onSuccess={handleBookingSuccess}
         />
       )}
     </>

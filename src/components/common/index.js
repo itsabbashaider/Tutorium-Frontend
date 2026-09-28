@@ -18,3 +18,6 @@ export { default as EmptyState } from "./empty-state.component";
 export { default as ErrorState } from "./error-state.component";
 export { default as Modal } from "./modal.component";
 export { default as Pagination } from "./pagination.component";
+export { default as ProfilePictureUpload } from "./upload-pfp"
+export { default as UserAvatar } from "./user-avatar.component";
+export { default as ConfirmModal } from "./confirmation-modal.component"

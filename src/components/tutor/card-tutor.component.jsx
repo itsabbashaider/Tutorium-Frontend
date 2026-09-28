@@ -1,8 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { Monitor, MapPin, Globe } from "lucide-react";
+import { Button, UserAvatar } from "../common";
 
-import { Button } from "../common";
+const getTeachingMode = (mode) => {
+  const normalized = mode?.toLowerCase() || "";
+  if (normalized.includes("online")) return "online";
+  if (normalized.includes("person") || normalized.includes("physical")) {
+    return "in-person";
+  }
+  return "other";
+};
 
 const TutorCard = ({
   tutor,
@@ -24,44 +33,57 @@ const TutorCard = ({
     city,
     subjects = [],
     is_bookable,
+    is_online,
   } = tutor;
 
-  const visibleSubjects =
-    subjects.slice(0, 3);
+  // Supports both flat avatar_url and nested tutor.user.avatar_url payloads
+  const avatarUrl = tutor.avatar_url || tutor.user?.avatar_url || null;
+  const tutorName = full_name || tutor.user?.full_name || "Tutor";
 
-  const canBook =
-    is_bookable === true;
+  const visibleSubjects = subjects.slice(0, 3);
+  const canBook = is_bookable === true;
+  const tutorIsOnline = is_online === true;
 
   const formattedRate =
-    hourly_rate !== undefined &&
-    hourly_rate !== null
-      ? `PKR ${Number(
-          hourly_rate
-        ).toLocaleString()}`
+    hourly_rate !== undefined && hourly_rate !== null
+      ? `PKR ${Number(hourly_rate).toLocaleString()}`
       : "—";
 
   const formattedRating =
-    avg_rating !== undefined &&
-    avg_rating !== null
+    avg_rating !== undefined && avg_rating !== null
       ? Number(avg_rating).toFixed(1)
       : null;
+
+  const teachingMode = getTeachingMode(teaching_mode);
 
   const handleBook = () => {
     if (!canBook) {
       return;
     }
-
     onBook?.(tutor);
   };
 
   return (
     <article className="group overflow-hidden rounded-lg border border-[#e5e7eb] bg-white transition-colors hover:border-[#c9cdd3]">
-      {/* Image area */}
+      {/* Image area with Online Status Indicator */}
       <div className="relative flex aspect-4/3 items-center justify-center overflow-hidden bg-[#f0f3ff]">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white text-2xl font-semibold text-[#3949ab] shadow-sm">
-          {full_name
-            ?.charAt(0)
-            ?.toUpperCase() || "T"}
+        <div className="relative">
+          <UserAvatar
+            avatarUrl={avatarUrl}
+            name={tutorName}
+            fallbackChar="T"
+            size="xl"
+            className="h-24 w-24 border-2 border-white text-2xl shadow-sm"
+          />
+
+          {/* Green Online Presence Dot */}
+          {tutorIsOnline && (
+            <span
+              className="absolute bottom-1 right-1 h-4 w-4 rounded-full bg-green-500 ring-2 ring-white"
+              title="Online now"
+              aria-label="Online now"
+            />
+          )}
         </div>
 
         {formattedRating && (
@@ -75,21 +97,35 @@ const TutorCard = ({
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <h2 className="truncate text-lg font-semibold tracking-tight text-black">
-              {full_name || "Tutor"}
+              {tutorName}
             </h2>
 
-            {city && (
-              <p className="mt-1 text-sm text-[#626770]">
-                {city}
-              </p>
-            )}
-          </div>
+            <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-[#626770]">
+              {city && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3 w-3 text-[#8a8e95]" />
+                  {city}
+                </span>
+              )}
 
-          {teaching_mode && (
-            <span className="shrink-0 text-xs font-medium text-[#8a8e95]">
-              {teaching_mode}
-            </span>
-          )}
+              {/* Relocated Teaching Mode Badge with Refined Icon and Label */}
+              {teaching_mode && (
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-0.5 font-medium text-gray-700">
+                  <span className="text-[#8a8e95] font-normal">Mode:</span>
+                  {teachingMode === "online" && (
+                    <Monitor className="h-3 w-3 text-gray-500" />
+                  )}
+                  {teachingMode === "in-person" && (
+                    <MapPin className="h-3 w-3 text-gray-500" />
+                  )}
+                  {teachingMode === "other" && (
+                    <Globe className="h-3 w-3 text-gray-500" />
+                  )}
+                  {teaching_mode}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
         {professional_bio && (
@@ -100,29 +136,27 @@ const TutorCard = ({
 
         {visibleSubjects.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2">
-            {visibleSubjects.map(
-              (subject) => {
-                const key =
-                  subject.subject_id ||
-                  subject.id ||
-                  subject.subject_name ||
-                  subject.name;
+            {visibleSubjects.map((subject) => {
+              const key =
+                subject.subject_id ||
+                subject.id ||
+                subject.subject_name ||
+                subject.name;
 
-                const name =
-                  subject.subject_name ||
-                  subject.name ||
-                  subject;
+              const name =
+                subject.subject_name ||
+                subject.name ||
+                subject;
 
-                return (
-                  <span
-                    key={key}
-                    className="rounded-md border border-[#e5e7eb] bg-[#fafbfc] px-2.5 py-1 text-xs font-medium text-[#4c4546]"
-                  >
-                    {name}
-                  </span>
-                );
-              }
-            )}
+              return (
+                <span
+                  key={key}
+                  className="rounded-md border border-[#e5e7eb] bg-[#fafbfc] px-2.5 py-1 text-xs font-medium text-[#4c4546]"
+                >
+                  {name}
+                </span>
+              );
+            })}
           </div>
         )}
 
@@ -135,13 +169,10 @@ const TutorCard = ({
               </span>
             </p>
 
-            {total_completed_sessions !==
-              undefined &&
-              total_completed_sessions !==
-                null && (
+            {total_completed_sessions !== undefined &&
+              total_completed_sessions !== null && (
                 <p className="mt-1 text-xs text-[#8a8e95]">
-                  {total_completed_sessions}{" "}
-                  completed sessions
+                  {total_completed_sessions} completed sessions
                 </p>
               )}
           </div>
@@ -160,9 +191,7 @@ const TutorCard = ({
                 </Button>
               )}
 
-              <Link
-                href={`/tutor/${tutor_profile_id}`}
-              >
+              <Link href={`/tutor/${tutor_profile_id}`}>
                 <Button
                   type="button"
                   variant="outline"

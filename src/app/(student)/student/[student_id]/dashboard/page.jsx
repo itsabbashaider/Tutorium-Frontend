@@ -2,6 +2,14 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+import {
+  ClipboardList,
+  Clock,
+  CheckCircle2,
+  CircleCheckBig,
+  XCircle,
+  Ban,
+} from "lucide-react";
 
 import {
   Button,
@@ -17,9 +25,12 @@ import {
   useProfile,
   useStudentDashboard,
   useStudentProfile,
+  useStudentRouteId,
 } from "@/hooks";
 
 const StudentDashboard = () => {
+  const studentId = useStudentRouteId();
+
   const {
     data: user,
     isLoading: isUserLoading,
@@ -48,16 +59,10 @@ const StudentDashboard = () => {
     refetchUser();
     refetchDashboard();
     refetchStudentProfile();
-  }, [
-    refetchUser,
-    refetchDashboard,
-    refetchStudentProfile,
-  ]);
+  }, [refetchUser, refetchDashboard, refetchStudentProfile]);
 
   const isLoading =
-    isUserLoading ||
-    isDashboardLoading ||
-    isStudentProfileLoading;
+    isUserLoading || isDashboardLoading || isStudentProfileLoading;
 
   if (isLoading) {
     return <Loading />;
@@ -102,61 +107,83 @@ const StudentDashboard = () => {
     );
   }
 
-  const bookingStats =
-    dashboard?.booking_stats || {};
+  const bookingStats = dashboard?.booking_stats || {};
 
-  const reviewStats =
-    dashboard?.review_stats || {};
+  const reviewStats = dashboard?.review_stats || {};
 
-  const totalBookings =
-    bookingStats.total_bookings ?? 0;
+  const totalBookings = bookingStats.total_bookings ?? 0;
 
-  const pendingBookings =
-    bookingStats.pending_bookings ?? 0;
+  const pendingBookings = bookingStats.pending_bookings ?? 0;
 
-  const acceptedBookings =
-    bookingStats.accepted_bookings ?? 0;
+  const acceptedBookings = bookingStats.accepted_bookings ?? 0;
 
-  const completedBookings =
-    bookingStats.completed_bookings ?? 0;
+  const completedBookings = bookingStats.completed_bookings ?? 0;
 
-  const rejectedBookings =
-    bookingStats.rejected_bookings ?? 0;
+  const rejectedBookings = bookingStats.rejected_bookings ?? 0;
 
-  const cancelledBookings =
-    bookingStats.cancelled_bookings ?? 0;
+  const cancelledBookings = bookingStats.cancelled_bookings ?? 0;
 
-  const completionRate =
-    bookingStats.completion_rate ?? 0;
+  const completionRate = bookingStats.completion_rate ?? 0;
 
   const bookingOverview = [
-    { label: "Total", value: totalBookings },
-    { label: "Pending", value: pendingBookings },
-    { label: "Accepted", value: acceptedBookings },
-    { label: "Completed", value: completedBookings },
-    { label: "Rejected", value: rejectedBookings },
-    { label: "Cancelled", value: cancelledBookings },
+    {
+      label: "Total",
+      value: totalBookings,
+      icon: ClipboardList,
+      accent: "text-[#626770]",
+      bg: "bg-[#f4f5f6]",
+      border: "border-[#e5e7eb]",
+    },
+    {
+      label: "Pending",
+      value: pendingBookings,
+      icon: Clock,
+      accent: "text-amber-600",
+      bg: "bg-amber-50",
+      border: "border-amber-100",
+    },
+    {
+      label: "Accepted",
+      value: acceptedBookings,
+      icon: CheckCircle2,
+      accent: "text-blue-600",
+      bg: "bg-blue-50",
+      border: "border-blue-100",
+    },
+    {
+      label: "Completed",
+      value: completedBookings,
+      icon: CircleCheckBig,
+      accent: "text-emerald-600",
+      bg: "bg-emerald-50",
+      border: "border-emerald-100",
+    },
+    {
+      label: "Rejected",
+      value: rejectedBookings,
+      icon: XCircle,
+      accent: "text-red-600",
+      bg: "bg-red-50",
+      border: "border-red-100",
+    },
+    {
+      label: "Cancelled",
+      value: cancelledBookings,
+      icon: Ban,
+      accent: "text-[#8a8e95]",
+      bg: "bg-[#f4f5f6]",
+      border: "border-[#e5e7eb]",
+    },
   ];
 
-  const profileUser =
-    studentProfile?.user || {};
+  const profileUser = studentProfile?.user || {};
 
-  const displayName =
-    profileUser.full_name ||
-    user?.full_name ||
-    "there";
-
-  const initial =
-    displayName.charAt(0).toUpperCase();
+  const displayName = profileUser.full_name || user?.full_name || "there";
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
       <section className="flex flex-col gap-5 border-b border-[#e5e7eb] pb-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#f0f3ff] text-lg font-semibold text-[#3949ab]">
-            {initial}
-          </div>
-
           <h1 className="text-2xl font-semibold tracking-tight text-black sm:text-3xl">
             Welcome back
           </h1>
@@ -168,12 +195,8 @@ const StudentDashboard = () => {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>Bookings</CardTitle>
 
-            <Link href="/student/bookings">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-              >
+            <Link href={`/student/${studentId}/bookings`}>
+              <Button type="button" variant="outline" size="sm">
                 View all
               </Button>
             </Link>
@@ -202,10 +225,7 @@ const StudentDashboard = () => {
               <div
                 className="h-full rounded-full bg-black transition-all"
                 style={{
-                  width: `${Math.min(
-                    100,
-                    Math.max(0, completionRate)
-                  )}%`,
+                  width: `${Math.min(100, Math.max(0, completionRate))}%`,
                 }}
               />
             </div>
@@ -213,18 +233,26 @@ const StudentDashboard = () => {
 
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {bookingOverview.map(
-              ({ label, value }) => (
+              ({ label, value, icon: Icon, accent, bg, border }) => (
                 <div
                   key={label}
-                  className="rounded-lg border border-[#e5e7eb] bg-[#fafbfc] p-4"
+                  className={`flex items-center justify-between rounded-xl border ${border} ${bg} p-4 transition-shadow hover:shadow-sm`}
                 >
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[#8a8e95]">
-                    {label}
-                  </p>
+                  <div>
+                    <p className="text-sm font-medium text-[#626770]">
+                      {label}
+                    </p>
 
-                  <p className="mt-2 text-2xl font-semibold tracking-tight text-black">
-                    {value}
-                  </p>
+                    <p className="mt-1 text-2xl font-semibold tabular-nums text-black">
+                      {value}
+                    </p>
+                  </div>
+
+                  <div
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/70 ${accent}`}
+                  >
+                    <Icon className="h-4 w-4" strokeWidth={2.25} />
+                  </div>
                 </div>
               )
             )}
@@ -237,12 +265,8 @@ const StudentDashboard = () => {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle>Profile</CardTitle>
 
-            <Link href="/student/settings">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-              >
+            <Link href={`/student/${studentId}/settings`}>
+              <Button type="button" variant="outline" size="sm">
                 Edit
               </Button>
             </Link>
@@ -257,9 +281,7 @@ const StudentDashboard = () => {
               </p>
 
               <p className="mt-1 text-sm font-medium text-black">
-                {profileUser.full_name ||
-                  user?.full_name ||
-                  "—"}
+                {profileUser.full_name || user?.full_name || "—"}
               </p>
             </div>
 
@@ -269,9 +291,7 @@ const StudentDashboard = () => {
               </p>
 
               <p className="mt-1 text-sm font-medium text-black">
-                {profileUser.city ||
-                  user?.city ||
-                  "—"}
+                {profileUser.city || user?.city || "—"}
               </p>
             </div>
 
@@ -281,8 +301,7 @@ const StudentDashboard = () => {
               </p>
 
               <p className="mt-1 text-sm font-medium text-black">
-                {studentProfile?.academic_level ||
-                  "—"}
+                {studentProfile?.academic_level || "—"}
               </p>
             </div>
 
@@ -303,8 +322,7 @@ const StudentDashboard = () => {
             </p>
 
             <p className="mt-2 max-w-4xl whitespace-pre-wrap text-sm leading-7 text-[#33373d]">
-              {studentProfile?.learning_goals ||
-                "No learning goals added."}
+              {studentProfile?.learning_goals || "No learning goals added."}
             </p>
           </div>
         </CardContent>

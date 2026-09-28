@@ -21,21 +21,11 @@ const truncate = (value = "", length = 100) => {
   return `${value.slice(0, length)}...`;
 };
 
-const getInitials = (value = "") => {
-  return value
-    .trim()
-    .split(" ")
-    .slice(0, 2)
-    .map((word) => word[0])
-    .join("")
-    .toUpperCase();
-};
 
 const string = {
   capitalize,
   titleCase,
   truncate,
-  getInitials,
 };
 
 export default string;

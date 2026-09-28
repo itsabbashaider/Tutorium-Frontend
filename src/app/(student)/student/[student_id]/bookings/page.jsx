@@ -12,6 +12,7 @@ import {
   ErrorState,
   Loading,
   Pagination,
+  UserAvatar,
 } from "@/components/common";
 
 import StudentReviewModal from "@/components/student/review-modal.component";
@@ -19,74 +20,51 @@ import StudentReviewModal from "@/components/student/review-modal.component";
 import {
   useCancelBooking,
   useStudentBookings,
+  useStudentRouteId,
 } from "@/hooks";
 
 import {
   formatBookingDate,
   formatBookingDateTime,
   formatBookingTime,
-  getInitial,
 } from "@/utils";
 
-import {
-  BOOKING_STATUS,
-  BOOKING_STATUS_VARIANTS,
-} from "@/constants"
+import { BOOKING_STATUS, BOOKING_STATUS_VARIANTS } from "@/constants";
 
 const PAGE_SIZE = 10;
 
 const StudentBookingsPage = () => {
+  const studentId = useStudentRouteId();
 
-  
-  const [reviewBooking, setReviewBooking] =
-    useState(null);
+  const [reviewBooking, setReviewBooking] = useState(null);
 
   const [page, setPage] = useState(1);
-  
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-  } = useStudentBookings({
+
+  const { data, isLoading, isError, error } = useStudentBookings({
     page,
     limit: PAGE_SIZE,
   });
-  
-  const cancelMutation =
-    useCancelBooking();
 
-  const bookings = Array.isArray(
-    data?.bookings
-  )
-    ? data.bookings
-    : [];
+  const cancelMutation = useCancelBooking();
 
-  const pagination =
-    data?.pagination ?? {};
+  const bookings = Array.isArray(data?.bookings) ? data.bookings : [];
 
-  const currentPage =
-    pagination.currentPage ?? page;
+  const pagination = data?.pagination ?? {};
 
-  const totalPages =
-    pagination.totalPages ?? 1;
+  const currentPage = pagination.currentPage ?? page;
 
-  const totalItems =
-    pagination.totalItems ?? 0;
+  const totalPages = pagination.totalPages ?? 1;
+
+  const totalItems = pagination.totalItems ?? 0;
 
   const actionError =
-    cancelMutation.error?.response?.data
-      ?.message ||
+    cancelMutation.error?.response?.data?.message ||
     cancelMutation.error?.message ||
     null;
 
-  const handleCancel = async (
-    bookingId
-  ) => {
+  const handleCancel = async (bookingId) => {
     try {
-      await cancelMutation.mutateAsync(
-        bookingId
-      );
+      await cancelMutation.mutateAsync(bookingId);
     } catch {
       return;
     }
@@ -121,19 +99,12 @@ const StudentBookingsPage = () => {
 
         <div className="flex flex-wrap items-center gap-3">
           <p className="text-sm text-[#626770]">
-            <span className="font-medium text-black">
-              {totalItems}
-            </span>{" "}
-            {totalItems === 1
-              ? "booking"
-              : "bookings"}
+            <span className="font-medium text-black">{totalItems}</span>{" "}
+            {totalItems === 1 ? "booking" : "bookings"}
           </p>
 
-          <Link href="/student/bookings/create-bookings">
-            <Button
-              type="button"
-              className="h-11"
-            >
+          <Link href={`/student/${studentId}/bookings/create-bookings`}>
+            <Button type="button" className="h-11">
               Create booking
             </Button>
           </Link>
@@ -143,9 +114,7 @@ const StudentBookingsPage = () => {
       {/* Action error */}
       {actionError && (
         <div className="mb-6 rounded-lg border border-[#ffdad6] bg-[#fff8f7] px-4 py-3">
-          <p className="text-sm text-[#93000a]">
-            {actionError}
-          </p>
+          <p className="text-sm text-[#93000a]">{actionError}</p>
         </div>
       )}
 
@@ -170,42 +139,38 @@ const StudentBookingsPage = () => {
       ) : (
         <section className="space-y-4">
           {bookings.map((booking) => {
-            const tutor =
-              booking.tutor?.user ?? null;
+            const tutorUser = booking.tutor?.user ?? null;
+            const subject = booking.subject ?? null;
+            const status = booking.status || "UNKNOWN";
 
-            const subject =
-              booking.subject ?? null;
+            const isCompleted = status === "COMPLETED";
 
-            const status =
-              booking.status || "UNKNOWN";
+            const availableActions = booking.available_actions ?? {};
 
-            const isCompleted =
-              status === "COMPLETED";
+            const canCancel = availableActions.can_cancel === true;
 
-            const availableActions =
-              booking.available_actions ?? {};
+            const canReview = availableActions.can_review === true;
 
-            const canCancel =
-              availableActions.can_cancel === true;
-
-            const canReview =
-              availableActions.can_review === true;
+            const tutorAvatarUrl =
+              booking.tutor?.avatar_url || tutorUser?.avatar_url || null;
 
             const tutorName =
-              tutor?.full_name || "Tutor";
+              tutorUser?.full_name || booking.tutor?.full_name || "Tutor";
+            const tutorCity = tutorUser?.city || booking.tutor?.city || null;
 
             return (
-              <Card
-                key={booking.booking_id}
-                className="overflow-hidden"
-              >
+              <Card key={booking.booking_id} className="overflow-hidden">
                 <CardContent className="p-5 sm:p-6">
                   {/* Booking header */}
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex min-w-0 items-center gap-3">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f0f3ff] text-sm font-semibold text-[#3949ab]">
-                        {getInitial(tutorName, "T")}
-                      </div>
+                      <UserAvatar
+                        avatarUrl={tutorAvatarUrl}
+                        name={tutorName}
+                        fallbackChar="T"
+                        size="md"
+                        className="h-11 w-11"
+                      />
 
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -213,30 +178,24 @@ const StudentBookingsPage = () => {
                             {tutorName}
                           </h2>
 
-                          <span
-                            aria-hidden="true"
-                            className="text-[#c4c7cc]"
-                          >
+                          <span aria-hidden="true" className="text-[#c4c7cc]">
                             •
                           </span>
 
                           <p className="truncate text-sm text-[#626770]">
-                            {subject?.subject_name ||
-                              "Subject unavailable"}
+                            {subject?.subject_name || "Subject unavailable"}
                           </p>
                         </div>
 
-                        {tutor?.city && (
+                        {tutorCity && (
                           <p className="mt-1 text-xs text-[#8a8e95]">
-                            {tutor.city}
+                            {tutorCity}
                           </p>
                         )}
                       </div>
                     </div>
 
-                    <Badge
-                      variant={BOOKING_STATUS_VARIANTS[status]}
-                    >
+                    <Badge variant={BOOKING_STATUS_VARIANTS[status]}>
                       {BOOKING_STATUS[status]}
                     </Badge>
                   </div>
@@ -250,9 +209,7 @@ const StudentBookingsPage = () => {
 
                       <p className="mt-1.5 text-sm font-medium text-black">
                         {booking.booking_date
-                          ? formatBookingDate(
-                              booking.booking_date
-                            )
+                          ? formatBookingDate(booking.booking_date)
                           : "—"}
                       </p>
                     </div>
@@ -264,18 +221,13 @@ const StudentBookingsPage = () => {
 
                       <p className="mt-1.5 text-sm font-medium text-black">
                         {booking.booking_start
-                          ? formatBookingDateTime(
-                              booking.booking_start
-                            )
+                          ? formatBookingDateTime(booking.booking_start)
                           : "—"}
                       </p>
 
                       {booking.booking_end && (
                         <p className="mt-1 text-xs text-[#6b7280]">
-                          Ends{" "}
-                          {formatBookingTime(
-                            booking.booking_end
-                          )}
+                          Ends {formatBookingTime(booking.booking_end)}
                         </p>
                       )}
                     </div>
@@ -321,18 +273,10 @@ const StudentBookingsPage = () => {
                           type="button"
                           size="sm"
                           variant="outline"
-                          onClick={() =>
-                            handleCancel(
-                              booking.booking_id
-                            )
-                          }
-                          disabled={
-                            cancelMutation.isPending
-                          }
+                          onClick={() => handleCancel(booking.booking_id)}
+                          disabled={cancelMutation.isPending}
                         >
-                          {cancelMutation.isPending
-                            ? "Cancelling..."
-                            : "Cancel"}
+                          {cancelMutation.isPending ? "Cancelling..." : "Cancel"}
                         </Button>
                       )}
 
@@ -341,17 +285,14 @@ const StudentBookingsPage = () => {
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() =>
-                            setReviewBooking(
-                              booking
-                            )
-                          }
+                          onClick={() => setReviewBooking(booking)}
                         >
                           Give review
                         </Button>
                       )}
+                      
                       <Link
-                        href={`/student/bookings/${booking.booking_id}`}
+                        href={`/student/${studentId}/bookings/${booking.booking_id}`}
                       >
                         <Button
                           type="button"
@@ -381,9 +322,7 @@ const StudentBookingsPage = () => {
       <StudentReviewModal
         isOpen={Boolean(reviewBooking)}
         booking={reviewBooking}
-        onClose={() =>
-          setReviewBooking(null)
-        }
+        onClose={() => setReviewBooking(null)}
       />
     </div>
   );

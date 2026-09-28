@@ -21,3 +21,18 @@ export const getSafeRedirect = (redirect) => {
 
   return redirect;
 };
+
+export const getDashboardRoute = (user) => {
+  if (!user) return "/login";
+
+  if (user.role === "STUDENT") {
+    const studentId = user.student_profile_id || user.student_id || user.id;
+    return "/student/${studentId}/dashboard";
+  }
+
+  if (user.role === "TUTOR") {
+    return "/tutor/dashboard";
+  }
+
+  return "/dashboard";
+};

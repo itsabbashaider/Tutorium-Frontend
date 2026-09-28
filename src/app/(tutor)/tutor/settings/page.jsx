@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import {
   Button,
@@ -14,7 +14,9 @@ import {
   Loading,
   Select,
   Textarea,
+  ConfirmModal,
 } from "@/components/common";
+import ProfilePictureUpload from "@/components/common/upload-pfp";
 
 import {
   useProfile,
@@ -28,9 +30,7 @@ import {
   TEACHING_MODE_LABELS,
 } from "@/constants";
 
-const teachingModeOptions = Object.values(
-  TEACHING_MODES
-).map((mode) => ({
+const teachingModeOptions = Object.values(TEACHING_MODES).map((mode) => ({
   value: mode,
   label: TEACHING_MODE_LABELS[mode],
 }));
@@ -50,17 +50,24 @@ const TutorSettingsPage = () => {
     error: tutorError,
   } = useTutorProfile();
 
-  const updateProfileMutation =
-    useUpdateProfile();
+  const updateProfileMutation = useUpdateProfile();
+  const updateTutorProfileMutation = useUpdateTutorProfile();
 
-  const updateTutorProfileMutation =
-    useUpdateTutorProfile();
+  const [isUserEditing, setIsUserEditing] = useState(false);
+  const [isTutorEditing, setIsTutorEditing] = useState(false);
 
-  const [isUserEditing, setIsUserEditing] =
-    useState(false);
+  const initialUserFormRef = useRef({
+    full_name: "",
+    city: "",
+    phone_number: "",
+    timezone: "",
+  });
 
-  const [isTutorEditing, setIsTutorEditing] =
-    useState(false);
+  const initialTutorFormRef = useRef({
+    professional_bio: "",
+    hourly_rate: "",
+    teaching_mode: "ONLINE",
+  });
 
   const [userForm, setUserForm] = useState({
     full_name: "",
@@ -75,60 +82,76 @@ const TutorSettingsPage = () => {
     teaching_mode: "ONLINE",
   });
 
+  // Modal states
+  const [showUserSaveModal, setShowUserSaveModal] = useState(false);
+  const [showUserCancelModal, setShowUserCancelModal] = useState(false);
+
+  const [showTutorSaveModal, setShowTutorSaveModal] = useState(false);
+  const [showTutorCancelModal, setShowTutorCancelModal] = useState(false);
+
+  const [targetAvailability, setTargetAvailability] = useState(null);
+
   useEffect(() => {
     if (!user) return;
 
-    setUserForm({
+    const data = {
       full_name: user.full_name || "",
       city: user.city || "",
       phone_number: user.phone_number || "",
       timezone: user.timezone || "",
-    });
+    };
+    initialUserFormRef.current = data;
+    setUserForm(data);
   }, [user]);
 
   useEffect(() => {
     if (!tutor) return;
 
-    setTutorForm({
-      professional_bio:
-        tutor.professional_bio || "",
+    const data = {
+      professional_bio: tutor.professional_bio || "",
       hourly_rate:
-        tutor.hourly_rate !== undefined &&
-        tutor.hourly_rate !== null
+        tutor.hourly_rate !== undefined && tutor.hourly_rate !== null
           ? String(tutor.hourly_rate)
           : "",
-      teaching_mode:
-        tutor.teaching_mode || "ONLINE",
-    });
+      teaching_mode: tutor.teaching_mode || "ONLINE",
+    };
+    initialTutorFormRef.current = data;
+    setTutorForm(data);
   }, [tutor]);
 
+  const hasUserFormChanged = () => {
+    return (
+      userForm.full_name.trim() !== initialUserFormRef.current.full_name.trim() ||
+      userForm.city.trim() !== initialUserFormRef.current.city.trim() ||
+      userForm.phone_number.trim() !== initialUserFormRef.current.phone_number.trim() ||
+      userForm.timezone.trim() !== initialUserFormRef.current.timezone.trim()
+    );
+  };
+
+  const hasTutorFormChanged = () => {
+    return (
+      tutorForm.professional_bio.trim() !== initialTutorFormRef.current.professional_bio.trim() ||
+      String(tutorForm.hourly_rate).trim() !== String(initialTutorFormRef.current.hourly_rate).trim() ||
+      tutorForm.teaching_mode !== initialTutorFormRef.current.teaching_mode
+    );
+  };
+
   const resetUserForm = () => {
-    setUserForm({
-      full_name: user?.full_name || "",
-      city: user?.city || "",
-      phone_number:
-        user?.phone_number || "",
-      timezone: user?.timezone || "",
-    });
+    setUserForm(initialUserFormRef.current);
+    setShowUserSaveModal(false);
+    setShowUserCancelModal(false);
+    updateProfileMutation.reset();
   };
 
   const resetTutorForm = () => {
-    setTutorForm({
-      professional_bio:
-        tutor?.professional_bio || "",
-      hourly_rate:
-        tutor?.hourly_rate !== undefined &&
-        tutor?.hourly_rate !== null
-          ? String(tutor.hourly_rate)
-          : "",
-      teaching_mode:
-        tutor?.teaching_mode || "ONLINE",
-    });
+    setTutorForm(initialTutorFormRef.current);
+    setShowTutorSaveModal(false);
+    setShowTutorCancelModal(false);
+    updateTutorProfileMutation.reset();
   };
 
   const handleUserChange = (event) => {
     const { name, value } = event.target;
-
     setUserForm((current) => ({
       ...current,
       [name]: value,
@@ -137,55 +160,87 @@ const TutorSettingsPage = () => {
 
   const handleTutorChange = (event) => {
     const { name, value } = event.target;
-
     setTutorForm((current) => ({
       ...current,
       [name]: value,
     }));
   };
 
-  const handleUserSubmit = async (event) => {
-    event.preventDefault();
-
-    try {
-      await updateProfileMutation.mutateAsync(
-        userForm
-      );
-
+  const handleUserCancelClick = () => {
+    if (hasUserFormChanged()) {
+      setShowUserCancelModal(true);
+    } else {
       setIsUserEditing(false);
-    } catch {
-      // Error rendered below.
+      resetUserForm();
     }
   };
 
-  const handleTutorSubmit = async (event) => {
-    event.preventDefault();
+  const handleTutorCancelClick = () => {
+    if (hasTutorFormChanged()) {
+      setShowTutorCancelModal(true);
+    } else {
+      setIsTutorEditing(false);
+      resetTutorForm();
+    }
+  };
 
+  const handleUserSubmit = (event) => {
+    event.preventDefault();
+    if (!hasUserFormChanged()) {
+      setIsUserEditing(false);
+      return;
+    }
+    setShowUserSaveModal(true);
+  };
+
+  const handleTutorSubmit = (event) => {
+    event.preventDefault();
+    if (!hasTutorFormChanged()) {
+      setIsTutorEditing(false);
+      return;
+    }
+    setShowTutorSaveModal(true);
+  };
+
+  const confirmUpdateUser = async () => {
+    try {
+      await updateProfileMutation.mutateAsync(userForm);
+      initialUserFormRef.current = { ...userForm };
+      setShowUserSaveModal(false);
+      setIsUserEditing(false);
+    } catch {
+      setShowUserSaveModal(false);
+    }
+  };
+
+  const confirmUpdateTutor = async () => {
     try {
       await updateTutorProfileMutation.mutateAsync({
-        professional_bio:
-          tutorForm.professional_bio,
+        professional_bio: tutorForm.professional_bio,
         hourly_rate:
           tutorForm.hourly_rate === ""
             ? undefined
             : Number(tutorForm.hourly_rate),
-        teaching_mode:
-          tutorForm.teaching_mode,
+        teaching_mode: tutorForm.teaching_mode,
       });
-
+      initialTutorFormRef.current = { ...tutorForm };
+      setShowTutorSaveModal(false);
       setIsTutorEditing(false);
     } catch {
-      // Error rendered below.
+      setShowTutorSaveModal(false);
     }
   };
 
-  const handleAvailabilityToggle = async () => {
+  const handleConfirmAvailabilityToggle = async () => {
+    if (targetAvailability === null) return;
+
     try {
       await updateTutorProfileMutation.mutateAsync({
-        is_available: !tutor?.is_available,
+        is_available: targetAvailability,
       });
+      setTargetAvailability(null);
     } catch {
-      // Error rendered below.
+      // Error handled by mutation state
     }
   };
 
@@ -223,49 +278,39 @@ const TutorSettingsPage = () => {
     return (
       <Card>
         <CardContent className="p-6">
-          <p className="text-sm text-[#626770]">
-            Settings are unavailable.
-          </p>
+          <p className="text-sm text-[#626770]">Settings are unavailable.</p>
         </CardContent>
       </Card>
     );
   }
 
-  const userInitial =
-    user.full_name
-      ?.charAt(0)
-      ?.toUpperCase() || "T";
-
   const userUpdateError =
-    updateProfileMutation.error?.response?.data
-      ?.message ||
+    updateProfileMutation.error?.response?.data?.message ||
     updateProfileMutation.error?.message ||
     null;
 
   const tutorUpdateError =
-    updateTutorProfileMutation.error?.response
-      ?.data?.message ||
+    updateTutorProfileMutation.error?.response?.data?.message ||
     updateTutorProfileMutation.error?.message ||
     null;
 
   return (
     <div className="mx-auto w-full max-w-6xl">
       <section className="border-b border-[#e5e7eb] pb-6">
-        <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#f0f3ff] text-base font-semibold text-[#3949ab]">
-            {userInitial}
-          </div>
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+          <ProfilePictureUpload
+            currentAvatarUrl={user.avatar_url}
+            fullName={user.full_name}
+          />
 
           <div className="min-w-0">
             <h1 className="text-2xl font-semibold tracking-tight text-black sm:text-3xl">
-              Settings
+              Settings  
             </h1>
 
             <p className="mt-1 truncate text-sm text-[#626770]">
               {user.full_name || "Tutor"}
-              {user.email
-                ? ` · ${user.email}`
-                : ""}
+              {user.email ? ` · ${user.email}` : ""}
             </p>
           </div>
         </div>
@@ -276,9 +321,7 @@ const TutorSettingsPage = () => {
         <Card>
           <CardHeader className="border-b border-[#e5e7eb]">
             <div className="flex items-center justify-between gap-4">
-              <CardTitle>
-                Personal information
-              </CardTitle>
+              <CardTitle>Personal information</CardTitle>
 
               {!isUserEditing && (
                 <Button
@@ -341,10 +384,7 @@ const TutorSettingsPage = () => {
                 </div>
               </div>
             ) : (
-              <form
-                onSubmit={handleUserSubmit}
-                className="space-y-5"
-              >
+              <form onSubmit={handleUserSubmit} className="space-y-5">
                 <div className="grid gap-5 sm:grid-cols-2">
                   <Input
                     id="full_name"
@@ -383,9 +423,7 @@ const TutorSettingsPage = () => {
 
                 {userUpdateError && (
                   <div className="rounded-lg border border-[#ffdad6] bg-[#fff8f7] px-4 py-3">
-                    <p className="text-sm text-[#93000a]">
-                      {userUpdateError}
-                    </p>
+                    <p className="text-sm text-[#93000a]">{userUpdateError}</p>
                   </div>
                 )}
 
@@ -393,23 +431,15 @@ const TutorSettingsPage = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => {
-                      resetUserForm();
-                      updateProfileMutation.reset();
-                      setIsUserEditing(false);
-                    }}
-                    disabled={
-                      updateProfileMutation.isPending
-                    }
+                    onClick={handleUserCancelClick}
+                    disabled={updateProfileMutation.isPending}
                   >
                     Cancel
                   </Button>
 
                   <Button
                     type="submit"
-                    disabled={
-                      updateProfileMutation.isPending
-                    }
+                    disabled={updateProfileMutation.isPending}
                   >
                     {updateProfileMutation.isPending
                       ? "Saving..."
@@ -425,9 +455,7 @@ const TutorSettingsPage = () => {
         <Card>
           <CardHeader className="border-b border-[#e5e7eb]">
             <div className="flex items-center justify-between gap-4">
-              <CardTitle>
-                Professional information
-              </CardTitle>
+              <CardTitle>Professional information</CardTitle>
 
               {!isTutorEditing && (
                 <Button
@@ -455,8 +483,7 @@ const TutorSettingsPage = () => {
                   </p>
 
                   <p className="mt-2 max-w-4xl whitespace-pre-wrap text-sm leading-7 text-[#33373d]">
-                    {tutor.professional_bio ||
-                      "No bio added."}
+                    {tutor.professional_bio || "No bio added."}
                   </p>
                 </div>
 
@@ -467,13 +494,9 @@ const TutorSettingsPage = () => {
                     </p>
 
                     <p className="mt-1.5 text-sm font-medium text-black">
-                      {tutor.hourly_rate !==
-                        undefined &&
-                      tutor.hourly_rate !==
-                        null
-                        ? `PKR ${Number(
-                            tutor.hourly_rate
-                          ).toLocaleString()}`
+                      {tutor.hourly_rate !== undefined &&
+                      tutor.hourly_rate !== null
+                        ? `PKR ${Number(tutor.hourly_rate).toLocaleString()}`
                         : "—"}
                     </p>
                   </div>
@@ -484,18 +507,13 @@ const TutorSettingsPage = () => {
                     </p>
 
                     <p className="mt-1.5 text-sm font-medium text-black">
-                      {TEACHING_MODE_LABELS[
-                        tutor.teaching_mode
-                      ] ?? "—"}
+                      {TEACHING_MODE_LABELS[tutor.teaching_mode] ?? "—"}
                     </p>
                   </div>
                 </div>
               </div>
             ) : (
-              <form
-                onSubmit={handleTutorSubmit}
-                className="space-y-5"
-              >
+              <form onSubmit={handleTutorSubmit} className="space-y-5">
                 <Textarea
                   id="professional_bio"
                   name="professional_bio"
@@ -533,9 +551,7 @@ const TutorSettingsPage = () => {
 
                 {tutorUpdateError && (
                   <div className="rounded-lg border border-[#ffdad6] bg-[#fff8f7] px-4 py-3">
-                    <p className="text-sm text-[#93000a]">
-                      {tutorUpdateError}
-                    </p>
+                    <p className="text-sm text-[#93000a]">{tutorUpdateError}</p>
                   </div>
                 )}
 
@@ -543,23 +559,15 @@ const TutorSettingsPage = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => {
-                      resetTutorForm();
-                      updateTutorProfileMutation.reset();
-                      setIsTutorEditing(false);
-                    }}
-                    disabled={
-                      updateTutorProfileMutation.isPending
-                    }
+                    onClick={handleTutorCancelClick}
+                    disabled={updateTutorProfileMutation.isPending}
                   >
                     Cancel
                   </Button>
 
                   <Button
                     type="submit"
-                    disabled={
-                      updateTutorProfileMutation.isPending
-                    }
+                    disabled={updateTutorProfileMutation.isPending}
                   >
                     {updateTutorProfileMutation.isPending
                       ? "Saving..."
@@ -574,9 +582,7 @@ const TutorSettingsPage = () => {
         {/* Booking availability */}
         <Card>
           <CardHeader>
-            <CardTitle>
-              Booking availability
-            </CardTitle>
+            <CardTitle>Booking availability</CardTitle>
           </CardHeader>
 
           <CardContent>
@@ -598,17 +604,11 @@ const TutorSettingsPage = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleAvailabilityToggle}
-                disabled={
-                  updateTutorProfileMutation.isPending
-                }
+                onClick={() => setTargetAvailability(!tutor.is_available)}
+                disabled={updateTutorProfileMutation.isPending}
                 className="shrink-0"
               >
-                {updateTutorProfileMutation.isPending
-                  ? "Updating..."
-                  : tutor.is_available
-                    ? "Set unavailable"
-                    : "Set available"}
+                {tutor.is_available ? "Set unavailable" : "Set available"}
               </Button>
             </div>
           </CardContent>
@@ -617,9 +617,7 @@ const TutorSettingsPage = () => {
         {/* Account */}
         <Card>
           <CardHeader>
-            <CardTitle>
-              Account
-            </CardTitle>
+            <CardTitle>Account</CardTitle>
           </CardHeader>
 
           <CardContent>
@@ -650,9 +648,7 @@ const TutorSettingsPage = () => {
         {/* Password */}
         <Card>
           <CardHeader>
-            <CardTitle>
-              Password
-            </CardTitle>
+            <CardTitle>Password</CardTitle>
           </CardHeader>
 
           <CardContent>
@@ -673,6 +669,76 @@ const TutorSettingsPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Confirmation Modal for Personal Info Save */}
+      <ConfirmModal
+        isOpen={showUserSaveModal}
+        onClose={() => setShowUserSaveModal(false)}
+        onConfirm={confirmUpdateUser}
+        title="Are you sure you want to update your personal information?"
+        message="Your profile details will be updated across the platform."
+        confirmText="Save changes"
+        variant="primary"
+        isLoading={updateProfileMutation.isPending}
+      />
+
+      {/* Confirmation Modal for Personal Info Cancel */}
+      <ConfirmModal
+        isOpen={showUserCancelModal}
+        onClose={() => setShowUserCancelModal(false)}
+        onConfirm={() => {
+          setIsUserEditing(false);
+          resetUserForm();
+        }}
+        title="Discard unsaved changes?"
+        message="You have unsaved changes in your personal information. Are you sure you want to cancel?"
+        confirmText="Discard changes"
+        variant="danger"
+      />
+
+      {/* Confirmation Modal for Professional Info Save */}
+      <ConfirmModal
+        isOpen={showTutorSaveModal}
+        onClose={() => setShowTutorSaveModal(false)}
+        onConfirm={confirmUpdateTutor}
+        title="Are you sure you want to update your professional information?"
+        message="Your tutor bio, rate, and teaching mode will be updated on your public profile."
+        confirmText="Save changes"
+        variant="primary"
+        isLoading={updateTutorProfileMutation.isPending}
+      />
+
+      {/* Confirmation Modal for Professional Info Cancel */}
+      <ConfirmModal
+        isOpen={showTutorCancelModal}
+        onClose={() => setShowTutorCancelModal(false)}
+        onConfirm={() => {
+          setIsTutorEditing(false);
+          resetTutorForm();
+        }}
+        title="Discard unsaved changes?"
+        message="You have unsaved changes in your professional information. Are you sure you want to cancel?"
+        confirmText="Discard changes"
+        variant="danger"
+      />
+
+      {/* Confirmation Modal for Availability Toggle */}
+      <ConfirmModal
+        isOpen={targetAvailability !== null}
+        onClose={() => setTargetAvailability(null)}
+        onConfirm={handleConfirmAvailabilityToggle}
+        title={`Are you sure you want to set yourself as ${
+          targetAvailability ? "Available" : "Unavailable"
+        }?`}
+        message={
+          targetAvailability
+            ? "Students will now be able to request and book lessons with you."
+            : "You will no longer appear as active for new student bookings."
+        }
+        confirmText={targetAvailability ? "Set available" : "Set unavailable"}
+        variant={targetAvailability ? "primary" : "danger"}
+        isLoading={updateTutorProfileMutation.isPending}
+      />
     </div>
   );
 };

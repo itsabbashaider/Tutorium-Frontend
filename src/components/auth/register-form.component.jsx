@@ -81,6 +81,12 @@ const RegisterForm = () => {
     });
   };
 
+  // Handler to trigger Google OAuth signup flow
+  const handleGoogleSignup = () => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+    window.location.href = `${apiUrl}/auth/google`;
+  };
+
   return (
     <Card className="w-full max-w-xl border-[#dfe2e7] bg-white shadow-sm">
       <CardHeader className="px-6 pb-4 pt-7 sm:px-10 sm:pt-8">
@@ -242,7 +248,7 @@ const RegisterForm = () => {
 
           <Button
             type="submit"
-            className="h-11 w-full bg-black"
+            className="h-11 w-full bg-black hover:bg-gray-800"
             disabled={isPending}
           >
             {signupMutation.isPending

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 
 import {
   Button,
@@ -17,35 +18,27 @@ import TutorCard from "@/components/tutor/card-tutor.component";
 
 import StudentCreateBookingModal from "@/components/student/create-booking-modal.component";
 
-import {
-  useSearchSubjects,
-  useTutors,
-} from "@/hooks";
+import { useSearchSubjects, useStudentRouteId, useTutors } from "@/hooks";
 
-import {
-  normalizeTutor
-} from "@/utils"
+import { normalizeTutor } from "@/utils";
 
 const PAGE_SIZE = 10;
 
 const StudentCreateBookingsPage = () => {
+  const studentId = useStudentRouteId();
+
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] =
-    useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const [selectedSubject, setSelectedSubject] =
-    useState(null);
+  const [selectedSubject, setSelectedSubject] = useState(null);
 
-  const [bookingTutor, setBookingTutor] =
-    useState(null);
+  const [bookingTutor, setBookingTutor] = useState(null);
 
   const [page, setPage] = useState(1);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearch(
-        search.trim()
-      );
+      setDebouncedSearch(search.trim());
     }, 350);
 
     return () => {
@@ -63,14 +56,9 @@ const StudentCreateBookingsPage = () => {
     isLoading: isSubjectsLoading,
     isError: isSubjectsError,
     error: subjectsError,
-  } = useSearchSubjects(
-    debouncedSearch,
-    {
-      enabled:
-        Boolean(debouncedSearch) &&
-        !selectedSubject,
-    }
-  );
+  } = useSearchSubjects(debouncedSearch, {
+    enabled: Boolean(debouncedSearch) && !selectedSubject,
+  });
 
   const {
     data: tutorData,
@@ -80,19 +68,14 @@ const StudentCreateBookingsPage = () => {
     isFetching: isTutorsFetching,
   } = useTutors(
     {
-      subject:
-        selectedSubject?.subject_name ||
-        "",
+      subject: selectedSubject?.subject_name || "",
       page,
       limit: PAGE_SIZE,
       sort_by: "top_rated",
     },
     {
-      enabled:
-        Boolean(
-          selectedSubject?.subject_name
-        ),
-    }
+      enabled: Boolean(selectedSubject?.subject_name),
+    },
   );
 
   const {
@@ -108,48 +91,29 @@ const StudentCreateBookingsPage = () => {
     },
     {
       enabled: !selectedSubject,
-    }
+    },
   );
 
-  const tutors = Array.isArray(
-    tutorData?.tutors
-  )
-    ? tutorData.tutors.map(
-        normalizeTutor
-      )
+  const tutors = Array.isArray(tutorData?.tutors)
+    ? tutorData.tutors.map(normalizeTutor)
     : [];
 
-  const topTutors = Array.isArray(
-    topTutorData?.tutors
-  )
-    ? topTutorData.tutors.map(
-        normalizeTutor
-      )
+  const topTutors = Array.isArray(topTutorData?.tutors)
+    ? topTutorData.tutors.map(normalizeTutor)
     : [];
 
-  const pagination =
-    tutorData?.pagination ?? {};
+  const pagination = tutorData?.pagination ?? {};
 
-  const currentPage =
-    pagination.currentPage ?? page;
+  const currentPage = pagination.currentPage ?? page;
 
-  const totalPages =
-    pagination.totalPages ?? 1;
+  const totalPages = pagination.totalPages ?? 1;
 
-  const totalItems =
-    pagination.totalItems ??
-    tutors.length;
+  const totalItems = pagination.totalItems ?? tutors.length;
 
-  const handleSelectSubject = (
-    subject
-  ) => {
+  const handleSelectSubject = (subject) => {
     setSelectedSubject(subject);
-    setSearch(
-      subject.subject_name
-    );
-    setDebouncedSearch(
-      subject.subject_name
-    );
+    setSearch(subject.subject_name);
+    setDebouncedSearch(subject.subject_name);
   };
 
   const handleClearSubject = () => {
@@ -159,22 +123,19 @@ const StudentCreateBookingsPage = () => {
     setPage(1);
   };
 
-  const handleBookTutor = (
-    tutor
-  ) => {
+  const handleBookTutor = (tutor) => {
     setBookingTutor(tutor);
   };
 
-  const handleCloseBookingModal =
-    () => {
-      setBookingTutor(null);
+  const handleCloseBookingModal = () => {
+    setBookingTutor(null);
   };
 
   return (
     <div className="mx-auto w-full max-w-6xl">
       {/* Back */}
       <div className="mb-8">
-        <Link href="/student/bookings">
+        <Link href={`/student/${studentId}/bookings`}>
           <Button
             type="button"
             variant="ghost"
@@ -188,9 +149,7 @@ const StudentCreateBookingsPage = () => {
               ←
             </span>
 
-            <span>
-              Back to bookings
-            </span>
+            <span>Back to bookings</span>
           </Button>
         </Link>
       </div>
@@ -222,13 +181,9 @@ const StudentCreateBookingsPage = () => {
               type="text"
               value={search}
               onChange={(event) => {
-                setSearch(
-                  event.target.value
-                );
+                setSearch(event.target.value);
 
-                setSelectedSubject(
-                  null
-                );
+                setSelectedSubject(null);
               }}
               placeholder="Search for a subject..."
               autoComplete="off"
@@ -238,62 +193,43 @@ const StudentCreateBookingsPage = () => {
             {search && (
               <button
                 type="button"
-                onClick={
-                  handleClearSubject
-                }
+                onClick={handleClearSubject}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-[#626770] transition-colors hover:text-black"
               >
                 Clear
               </button>
             )}
 
-            {!selectedSubject &&
-              debouncedSearch && (
-                <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-lg border border-[#e5e7eb] bg-white shadow-lg">
-                  {isSubjectsLoading ? (
-                    <div className="px-4 py-3 text-sm text-[#626770]">
-                      Searching subjects...
-                    </div>
-                  ) : subjectSuggestions.length >
-                    0 ? (
-                    <div className="max-h-64 overflow-y-auto">
-                      {subjectSuggestions.map(
-                        (subject) => (
-                          <button
-                            key={
-                              subject.subject_id
-                            }
-                            type="button"
-                            onClick={() =>
-                              handleSelectSubject(
-                                subject
-                              )
-                            }
-                            className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-[#33373d] transition-colors hover:bg-[#f5f6f7] hover:text-black"
-                          >
-                            <span>
-                              {
-                                subject.subject_name
-                              }
-                            </span>
+            {!selectedSubject && debouncedSearch && (
+              <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-lg border border-[#e5e7eb] bg-white shadow-lg">
+                {isSubjectsLoading ? (
+                  <div className="px-4 py-3 text-sm text-[#626770]">
+                    Searching subjects...
+                  </div>
+                ) : subjectSuggestions.length > 0 ? (
+                  <div className="max-h-64 overflow-y-auto">
+                    {subjectSuggestions.map((subject) => (
+                      <button
+                        key={subject.subject_id}
+                        type="button"
+                        onClick={() => handleSelectSubject(subject)}
+                        className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-[#33373d] transition-colors hover:bg-[#f5f6f7] hover:text-black"
+                      >
+                        <span>{subject.subject_name}</span>
 
-                            <span className="text-[#9aa0a8]">
-                              →
-                            </span>
-                          </button>
-                        )
-                      )}
-                    </div>
-                  ) : null}
-                </div>
-              )}
+                        <span className="text-[#9aa0a8]">→</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            )}
           </div>
 
           {isSubjectsError && (
             <div className="mt-3 rounded-lg border border-[#ffdad6] bg-[#fff8f7] px-4 py-3">
               <p className="text-sm text-[#93000a]">
-                {subjectsError?.response?.data
-                  ?.message ||
+                {subjectsError?.response?.data?.message ||
                   subjectsError?.message ||
                   "Unable to search subjects."}
               </p>
@@ -304,8 +240,7 @@ const StudentCreateBookingsPage = () => {
             !isSubjectsError &&
             debouncedSearch &&
             !selectedSubject &&
-            subjectSuggestions.length ===
-              0 && (
+            subjectSuggestions.length === 0 && (
               <p className="mt-3 text-sm text-[#626770]">
                 No matching subjects found.
               </p>
@@ -319,9 +254,7 @@ const StudentCreateBookingsPage = () => {
                 </p>
 
                 <p className="mt-1 truncate text-sm font-semibold text-black">
-                  {
-                    selectedSubject.subject_name
-                  }
+                  {selectedSubject.subject_name}
                 </p>
               </div>
 
@@ -329,9 +262,7 @@ const StudentCreateBookingsPage = () => {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={
-                  handleClearSubject
-                }
+                onClick={handleClearSubject}
               >
                 Change
               </Button>
@@ -347,8 +278,7 @@ const StudentCreateBookingsPage = () => {
             <ErrorState
               title="Unable to load tutors"
               message={
-                topTutorsError?.response?.data
-                  ?.message ||
+                topTutorsError?.response?.data?.message ||
                 topTutorsError?.message ||
                 "Unable to load top-rated tutors."
               }
@@ -368,14 +298,10 @@ const StudentCreateBookingsPage = () => {
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {topTutors.map((tutor) => (
                 <TutorCard
-                  key={
-                    tutor.tutor_profile_id
-                  }
+                  key={tutor.tutor_profile_id}
                   tutor={tutor}
                   showBookButton
-                  onBook={
-                    handleBookTutor
-                  }
+                  onBook={handleBookTutor}
                 />
               ))}
             </div>
@@ -389,10 +315,7 @@ const StudentCreateBookingsPage = () => {
           <div className="mb-5 flex flex-col gap-2 border-b border-[#e5e7eb] pb-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="text-xl font-semibold tracking-tight text-black">
-                Tutors for{" "}
-                {
-                  selectedSubject.subject_name
-                }
+                Tutors for {selectedSubject.subject_name}
               </h2>
 
               <p className="mt-1 text-sm text-[#626770]">
@@ -401,12 +324,8 @@ const StudentCreateBookingsPage = () => {
             </div>
 
             <p className="text-sm text-[#626770]">
-              <span className="font-medium text-black">
-                {totalItems}
-              </span>{" "}
-              {totalItems === 1
-                ? "tutor"
-                : "tutors"}
+              <span className="font-medium text-black">{totalItems}</span>{" "}
+              {totalItems === 1 ? "tutor" : "tutors"}
             </p>
           </div>
 
@@ -414,8 +333,7 @@ const StudentCreateBookingsPage = () => {
             <ErrorState
               title="Unable to load tutors"
               message={
-                tutorsError?.response?.data
-                  ?.message ||
+                tutorsError?.response?.data?.message ||
                 tutorsError?.message ||
                 "Unable to load tutors for this subject."
               }
@@ -435,25 +353,21 @@ const StudentCreateBookingsPage = () => {
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {tutors.map((tutor) => (
                 <TutorCard
-                  key={
-                    tutor.tutor_profile_id
-                  }
+                  key={tutor.tutor_profile_id}
                   tutor={tutor}
                   showBookButton
-                  onBook={
-                    handleBookTutor
-                  }
+                  onBook={handleBookTutor}
                 />
               ))}
             </div>
           )}
 
-      {/* Pagination */}
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setPage}
-      />
+          {/* Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
         </section>
       )}
 
@@ -461,9 +375,7 @@ const StudentCreateBookingsPage = () => {
         isOpen={Boolean(bookingTutor)}
         tutor={bookingTutor}
         subject={selectedSubject}
-        onClose={
-          handleCloseBookingModal
-        }
+        onClose={handleCloseBookingModal}
       />
     </div>
   );

@@ -11,6 +11,7 @@ import {
   CardTitle,
   ErrorState,
   Loading,
+  UserAvatar,
 } from "@/components/common";
 
 import { useStudentPublicProfile } from "@/hooks";
@@ -22,7 +23,7 @@ const StudentPublicProfilePage = () => {
     data: student,
     isLoading,
     isError,
-    error,
+    error,    
   } = useStudentPublicProfile(student_id);
 
   if (isLoading) {
@@ -41,6 +42,11 @@ const StudentPublicProfilePage = () => {
       />
     );
   }
+
+
+
+  const studentAvatarUrl =
+    student?.user?.avatar_url || student?.avatar_url || null;
 
   const fullName =
     student.user?.full_name || "Student";
@@ -95,9 +101,12 @@ const StudentPublicProfilePage = () => {
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             {/* Identity */}
             <div className="flex min-w-0 items-center gap-4">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#f0f3ff] text-xl font-semibold text-[#3949ab]">
-                {initial}
-              </div>
+              <UserAvatar
+                avatarUrl={studentAvatarUrl}
+                name={fullName}
+                size="md"
+                className="h-9 w-9"
+              />
 
               <div className="min-w-0">
                 <h1 className="truncate text-2xl font-semibold tracking-tight text-black">

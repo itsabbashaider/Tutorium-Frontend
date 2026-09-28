@@ -22,6 +22,10 @@ export const useStudentProfile = (
 
     enabled:
       options.enabled ?? true,
+    
+    staleTime: 0,
+
+    refetchOnWindowFocus: true,
 
     ...options,
   });
@@ -92,3 +96,4 @@ export const useStudentPublicProfile = (
     ...options,
   });
 };
+

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import {
   tutor1,
@@ -14,6 +14,7 @@ import {
 
 import { useAuth } from "@/hooks";
 import { getLoginRedirectUrl } from "@/utils/auth/auth.util";
+import { Loading } from "@/components/common";
 
 const featuredTutors = [
   {
@@ -50,48 +51,45 @@ const featuredTutors = [
   },
 ];
 
-const features = [
-  {
-    title: "Vetted Tutors",
-    description:
-      "Find experienced educators whose expertise and teaching background are built around real learning outcomes.",
-    icon: "✓",
-  },
-  {
-    title: "Flexible Scheduling",
-    description:
-      "Discover recurring availability and book sessions that fit your schedule and timezone.",
-    icon: "◷",
-  },
-  {
-    title: "Focused Learning",
-    description:
-      "Get one-on-one instruction built around your subject, goals, pace, and preferred teaching style.",
-    icon: "↗",
-  },
-];
-
 export default function HomePage() {
   const router = useRouter();
-
   const [search, setSearch] = useState("");
 
   const {
+    user,
     isAuthenticated,
     loading: authLoading,
   } = useAuth();
 
-  const navigateToTutors = (query = "") => {
-    if (authLoading) {
-      return;
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && user) {
+      router.replace("/dashboard");
     }
+  }, [isAuthenticated, user, authLoading, router]);
+
+  if (authLoading || isAuthenticated) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[#f9f9ff]">
+        <Loading />
+      </div>
+    );
+  }
+  
+  // so the landing page content and dashboard layouts never clash or flash together.
+  if (authLoading || isAuthenticated) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[#f9f9ff]">
+        <Loading />
+      </div>
+    );
+  }
+
+  const navigateToTutors = (query = "") => {
+    if (authLoading) return;
 
     const normalizedQuery = query.trim();
-
     const destination = normalizedQuery
-      ? `/tutor?search=${encodeURIComponent(
-          normalizedQuery
-        )}`
+      ? `/tutor?search=${encodeURIComponent(normalizedQuery)}`
       : "/tutor";
 
     if (isAuthenticated) {
@@ -99,14 +97,11 @@ export default function HomePage() {
       return;
     }
 
-    router.push(
-      getLoginRedirectUrl(destination)
-    );
+    router.push(getLoginRedirectUrl(destination));
   };
 
   const handleSearch = (event) => {
     event.preventDefault();
-
     navigateToTutors(search);
   };
 
@@ -126,7 +121,7 @@ export default function HomePage() {
             <div className="hidden items-center gap-1 md:flex">
               <a
                 href="#find-tutors"
-                className="rounded-lg px-3 py-2 text-sm font-medium text-black transition-colors hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-lg px-3 py-2 text-sm font-medium text-black transition-colors hover:bg-black hover:text-white"
               >
                 Find Tutors
               </a>

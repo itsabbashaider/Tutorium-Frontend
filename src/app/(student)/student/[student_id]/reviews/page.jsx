@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { Star } from "lucide-react";
 
 import {
@@ -14,26 +15,23 @@ import {
   Pagination,
 } from "@/components/common";
 
-import { useMyReviews } from "@/hooks";
+import { useMyReviews, useStudentRouteId } from "@/hooks";
 
 import {
   formatBookingDate,
   formatBookingDateTime,
   formatBookingTime,
-  formatRating
+  formatRating,
 } from "@/utils";
 
 const PAGE_SIZE = 10;
 
 const StudentReviewsPage = () => {
+  const studentId = useStudentRouteId();
+
   const [page, setPage] = useState(1);
 
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-  } = useMyReviews({
+  const { data, isLoading, isError, error } = useMyReviews({
     page,
     limit: PAGE_SIZE,
   });
@@ -55,20 +53,15 @@ const StudentReviewsPage = () => {
     );
   }
 
-  const reviews = Array.isArray(data?.reviews)
-    ? data.reviews
-    : [];
+  const reviews = Array.isArray(data?.reviews) ? data.reviews : [];
 
   const pagination = data?.pagination ?? {};
 
-  const currentPage =
-    pagination.currentPage ?? page;
+  const currentPage = pagination.currentPage ?? page;
 
-  const totalPages =
-    pagination.totalPages ?? 1;
+  const totalPages = pagination.totalPages ?? 1;
 
-  const totalItems =
-    pagination.totalItems ?? reviews.length;
+  const totalItems = pagination.totalItems ?? reviews.length;
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
@@ -81,9 +74,7 @@ const StudentReviewsPage = () => {
         </div>
 
         <p className="text-sm text-[#626770]">
-          <span className="font-medium text-black">
-            {totalItems}
-          </span>{" "}
+          <span className="font-medium text-black">{totalItems}</span>{" "}
           {totalItems === 1 ? "review" : "reviews"}
         </p>
       </section>
@@ -115,9 +106,7 @@ const StudentReviewsPage = () => {
                   {/* Review header */}
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between ">
                     <div>
-                      <p className="text-xs text-[#8a8e95]">
-                        Tutor
-                      </p>
+                      <p className="text-xs text-[#8a8e95]">Tutor</p>
 
                       <p className="mt-1 text-sm font-semibold text-black">
                         {tutor.full_name || "Tutor"}
@@ -134,9 +123,7 @@ const StudentReviewsPage = () => {
 
                     <p className="text-xs text-[#8a8e95]">
                       {review.created_at
-                        ? formatBookingDateTime(
-                            review.created_at
-                          )
+                        ? formatBookingDateTime(review.created_at)
                         : "—"}
                     </p>
                   </div>
@@ -159,9 +146,7 @@ const StudentReviewsPage = () => {
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                       {/* Subject */}
                       <div>
-                        <p className="text-xs text-[#8a8e95]">
-                          Subject
-                        </p>
+                        <p className="text-xs text-[#8a8e95]">Subject</p>
 
                         <p className="mt-1 text-sm font-medium text-black">
                           {subject.subject_name || "—"}
@@ -170,48 +155,35 @@ const StudentReviewsPage = () => {
 
                       {/* Lesson date */}
                       <div>
-                        <p className="text-xs text-[#8a8e95]">
-                          Lesson date
-                        </p>
+                        <p className="text-xs text-[#8a8e95]">Lesson date</p>
 
                         <p className="mt-1 text-sm font-medium text-black">
                           {booking.booking_date
-                            ? formatBookingDate(
-                                booking.booking_date
-                              )
+                            ? formatBookingDate(booking.booking_date)
                             : "—"}
                         </p>
                       </div>
 
                       {/* Lesson time */}
                       <div>
-                        <p className="text-xs text-[#8a8e95]">
-                          Lesson time
-                        </p>
+                        <p className="text-xs text-[#8a8e95]">Lesson time</p>
 
                         <p className="mt-1 text-sm font-medium text-black">
                           {booking.booking_start
-                            ? formatBookingDateTime(
-                                booking.booking_start
-                              )
+                            ? formatBookingDateTime(booking.booking_start)
                             : "—"}
                         </p>
 
                         {booking.booking_end && (
                           <p className="mt-1 text-xs text-[#6b7280]">
-                            Ends{" "}
-                            {formatBookingTime(
-                              booking.booking_end
-                            )}
+                            Ends {formatBookingTime(booking.booking_end)}
                           </p>
                         )}
                       </div>
 
                       {/* Status */}
                       <div>
-                        <p className="text-xs text-[#8a8e95]">
-                          Status
-                        </p>
+                        <p className="text-xs text-[#8a8e95]">Status</p>
 
                         <span className="mt-1 inline-flex rounded-full bg-[#f4f5f7] px-2.5 py-1 text-xs font-medium text-[#626770]">
                           {booking.status || "—"}
@@ -223,7 +195,7 @@ const StudentReviewsPage = () => {
                     {booking.booking_id && (
                       <div className="mt-5 flex justify-end">
                         <Link
-                          href={`/student/bookings/${booking.booking_id}`}
+                          href={`/student/${studentId}/bookings/${booking.booking_id}`}
                         >
                           <Button
                             type="button"

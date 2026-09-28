@@ -11,6 +11,10 @@ export const useTutorProfile = (options = {}) => {
 
     queryFn: () => tutorService.getProfile(),
 
+    staleTime: 0,
+
+    refetchOnWindowFocus: true,
+
     enabled: options.enabled ?? true,
 
     ...options,

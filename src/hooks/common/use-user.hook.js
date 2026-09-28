@@ -13,8 +13,7 @@ export const useProfile = (options = {}) => {
   return useQuery({
     queryKey: QUERY_KEYS.USER.PROFILE,
 
-    queryFn: () =>
-      userService.getProfile(),
+    queryFn: () => userService.getProfile(),
 
     enabled: options.enabled ?? true,
 
@@ -22,45 +21,53 @@ export const useProfile = (options = {}) => {
   });
 };
 
-export const useUpdateProfile = (
-  options = {}
-) => {
+export const useUpdateProfile = (options = {}) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data) =>
-      userService.updateProfile(data),
+    mutationFn: (data) => userService.updateProfile(data),
 
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.USER.PROFILE,
       });
 
-      options.onSuccess?.(
-        data,
-        variables,
-        context
-      );
+      options.onSuccess?.(data, variables, context);
     },
 
     onError: (error, variables, context) => {
-      options.onError?.(
-        error,
-        variables,
-        context
-      );
+      options.onError?.(error, variables, context);
     },
 
     ...options,
   });
 };
 
-export const useDeleteAccount = (
-  options = {}
-) => {
+export const useUpdateAvatar = (options = {}) => {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: () =>
-      userService.deleteAccount(),
+    mutationFn: (file) => userService.updateAvatar(file),
+
+    onSuccess: (data, variables, context) => {
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.USER.PROFILE,
+      });
+
+      options.onSuccess?.(data, variables, context);
+    },
+
+    onError: (error, variables, context) => {
+      options.onError?.(error, variables, context);
+    },
+
+    ...options,
+  });
+};
+
+export const useDeleteAccount = (options = {}) => {
+  return useMutation({
+    mutationFn: () => userService.deleteAccount(),
 
     ...options,
   });
