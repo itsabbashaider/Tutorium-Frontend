@@ -128,10 +128,6 @@ const TutorSubjectsPage = () => {
               <h1 className="text-3xl font-semibold tracking-tight text-black">
                 Subjects
               </h1>
-
-              <p className="mt-2 text-sm text-[#626770]">
-                Manage the subjects you teach.
-              </p>
             </div>
 
             <p className="text-sm text-[#626770]">
@@ -157,8 +153,7 @@ const TutorSubjectsPage = () => {
             <form onSubmit={handleAdd} className="space-y-4">
               <div className="relative">
                 <Input
-                  id="subject"
-                  label="Subject"
+                  id="subject"  
                   value={search}
                   onChange={(event) => {
                     setSearch(event.target.value);

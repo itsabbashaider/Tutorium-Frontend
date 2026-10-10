@@ -37,12 +37,14 @@ const StudentBookingsPage = () => {
   const studentId = useStudentRouteId();
 
   const [reviewBooking, setReviewBooking] = useState(null);
-
+  const [statusFilter, setStatusFilter] = useState("ALL");
   const [page, setPage] = useState(1);
 
+  // Pass status filter and page to the backend hook
   const { data, isLoading, isError, error } = useStudentBookings({
     page,
     limit: PAGE_SIZE,
+    status: statusFilter === "ALL" ? undefined : statusFilter,
   });
 
   const cancelMutation = useCancelBooking();
@@ -56,6 +58,12 @@ const StudentBookingsPage = () => {
   const totalPages = pagination.totalPages ?? 1;
 
   const totalItems = pagination.totalItems ?? 0;
+
+  // Handle filter changes and reset pagination back to page 1
+  const handleStatusChange = (status) => {
+    setStatusFilter(status);
+    setPage(1);
+  };
 
   const actionError =
     cancelMutation.error?.response?.data?.message ||
@@ -111,6 +119,23 @@ const StudentBookingsPage = () => {
         </div>
       </section>
 
+      {/* Status Filter Tabs */}
+      <div className="mb-6 flex flex-wrap gap-2">
+        {["ALL", "PENDING", "ACCEPTED", "CANCELLED", "REJECTED", "COMPLETED"].map((status) => (
+          <button
+            key={status}
+            onClick={() => handleStatusChange(status)}
+            className={`rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider transition ${
+              statusFilter === status
+                ? "bg-black text-white shadow-sm"
+                : "border border-[#dfe2e7] bg-white text-[#626770] hover:border-black hover:text-black"
+            }`}
+          >
+            {status}
+          </button>
+        ))}
+      </div>
+
       {/* Action error */}
       {actionError && (
         <div className="mb-6 rounded-lg border border-[#ffdad6] bg-[#fff8f7] px-4 py-3">
@@ -126,12 +151,12 @@ const StudentBookingsPage = () => {
               title={
                 totalItems === 0
                   ? "No bookings yet"
-                  : "No bookings on this page"
+                  : "No bookings found for this filter"
               }
               message={
                 totalItems === 0
                   ? "Your tutoring bookings will appear here."
-                  : "Try another page."
+                  : "Try selecting a different status filter."
               }
             />
           </CardContent>

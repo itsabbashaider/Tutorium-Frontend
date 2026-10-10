@@ -260,6 +260,39 @@ export const useAuth = () => {
 
   /*
   |--------------------------------------------------------------------------
+  | Q&A Flow
+  |--------------------------------------------------------------------------
+  */
+  const setupSecurityQAMutation = useMutation({
+    mutationFn: (payload) => authService.setupSecurityQA(payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["me"] });
+    },
+  });
+
+  const getSecurityQuestionMutation = useMutation({
+    mutationFn: (payload) => authService.getSecurityQuestion(payload),
+  });
+
+  const verifySecurityAnswerMutation = useMutation({
+    mutationFn: (payload) => authService.verifySecurityAnswer(payload),
+  });
+
+  const resetPasswordWithQAMutation = useMutation({
+    mutationFn: (payload) => authService.resetPasswordWithQA(payload),
+  });
+
+  /*
+  |--------------------------------------------------------------------------
+  | Change Password (In-App Settings)
+  |--------------------------------------------------------------------------
+  */
+  const changePasswordMutation = useMutation({
+    mutationFn: (payload) => authService.changePassword(payload),
+  });
+
+  /*
+  |--------------------------------------------------------------------------
   | Return
   |--------------------------------------------------------------------------
   */
@@ -279,6 +312,11 @@ export const useAuth = () => {
     forgotPasswordMutation,
     resetPasswordMutation,
     refreshTokenMutation,
+    setupSecurityQAMutation,
+    getSecurityQuestionMutation,
+    verifySecurityAnswerMutation,
+    resetPasswordWithQAMutation,
+    changePasswordMutation,
 
     cancelAuthRequest,
 

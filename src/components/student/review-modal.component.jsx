@@ -16,6 +16,7 @@ const StudentReviewModal = ({
   onClose,
 }) => {
   const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
 
   const {
@@ -44,6 +45,7 @@ const StudentReviewModal = ({
 
   const resetForm = () => {
     setRating(0);
+    setHoverRating(0);
     setComment("");
     reset();
   };
@@ -109,32 +111,45 @@ const StudentReviewModal = ({
             Rating
           </label>
 
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 flex items-center gap-1.5">
             {[1, 2, 3, 4, 5].map(
               (value) => {
-                const isSelected =
-                  rating >= value;
+                const isHighlighted =
+                  (hoverRating || rating) >= value;
 
                 return (
                   <button
                     key={value}
                     type="button"
                     onClick={() =>
-                      setRating(
-                        value
-                      )
+                      setRating(value)
                     }
-                    disabled={
-                      isPending
+                    onMouseEnter={() =>
+                      setHoverRating(value)
                     }
-                    aria-label={`Give ${value} out of 5`}
-                    className={`flex h-10 w-10 items-center justify-center rounded-lg border text-sm font-semibold transition-colors ${
-                      isSelected
-                        ? "border-black bg-black text-white"
-                        : "border-[#e5e7eb] bg-white text-[#626770] hover:border-black hover:text-black"
-                    }`}
+                    onMouseLeave={() =>
+                      setHoverRating(0)
+                    }
+                    disabled={isPending}
+                    aria-label={`Give ${value} out of 5 stars`}
+                    className="p-1 transition-transform hover:scale-110 focus:outline-none"
                   >
-                    {value}
+                    <svg
+                      className={`h-8 w-8 transition-colors ${
+                        isHighlighted
+                          ? "text-amber-400 fill-amber-400"
+                          : "text-gray-300 fill-gray-100"
+                      }`}
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385c.103.432-.353.782-.74.555l-4.721-2.758a.563.563 0 00-.586 0L6.982 20.54c-.387.227-.843-.123-.74-.555l1.285-5.385a.563.563 0 00-.182-.557l-4.204-3.602c-.38-.325-.178-.948.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"
+                      />
+                    </svg>
                   </button>
                 );
               }
@@ -143,7 +158,7 @@ const StudentReviewModal = ({
 
           {rating > 0 && (
             <p className="mt-2 text-xs text-[#626770]">
-              {rating} out of 5
+              {rating} out of 5 stars
             </p>
           )}
         </div>

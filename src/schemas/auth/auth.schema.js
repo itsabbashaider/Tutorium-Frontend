@@ -30,7 +30,7 @@ export const signupSchema = z.object({
 export const loginSchema = z.object({
   email: emailSchema,
 
-  password: passwordSchema,
+  password: z.string().min(1, "Password is required.")
 });
 
 export const changePasswordSchema = z
@@ -39,7 +39,7 @@ export const changePasswordSchema = z
 
     new_password: passwordSchema,
 
-    confirm_password: z.string().min(1, "Password confirmation is required"),
+    confirm_password: passwordSchema.min(1, "Password confirmation is required"),
   })
   .refine((data) => data.new_password === data.confirm_password, {
     path: ["confirm_password"],

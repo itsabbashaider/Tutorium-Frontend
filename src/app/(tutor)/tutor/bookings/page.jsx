@@ -42,6 +42,7 @@ import {
 
 const TutorBookingsPage = () => {
   const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState("ALL");
 
   const [
     rejectingBookingId,
@@ -51,6 +52,7 @@ const TutorBookingsPage = () => {
   const [rejectionReason, setRejectionReason] =
     useState("");
 
+  // Pass status filter and page to the backend hook
   const {
     data,
     isLoading,
@@ -60,6 +62,7 @@ const TutorBookingsPage = () => {
   } = useTutorBookings({
     page,
     limit: PAGE_SIZE,
+    status: statusFilter === "ALL" ? undefined : statusFilter,
   });
 
   const acceptMutation =
@@ -95,6 +98,12 @@ const TutorBookingsPage = () => {
 
   const totalItems =
     pagination.totalItems ?? 0;
+
+  // Handle filter changes and reset pagination back to page 1
+  const handleStatusChange = (status) => {
+    setStatusFilter(status);
+    setPage(1);
+  };
 
   const isMutating =
     acceptMutation.isPending ||
@@ -166,35 +175,6 @@ const TutorBookingsPage = () => {
     }
   };
 
-  const goToPreviousPage = () => {
-    if (
-      isFetching ||
-      !pagination.hasPreviousPage
-    ) {
-      return;
-    }
-
-    setPage((current) =>
-      Math.max(1, current - 1)
-    );
-  };
-
-  const goToNextPage = () => {
-    if (
-      isFetching ||
-      !pagination.hasNextPage
-    ) {
-      return;
-    }
-
-    setPage((current) =>
-      Math.min(
-        totalPages,
-        current + 1
-      )
-    );
-  };
-
   const closeRejectForm = () => {
     setRejectingBookingId(null);
     setRejectionReason("");
@@ -220,7 +200,7 @@ const TutorBookingsPage = () => {
 
   return (
     <div className="mx-auto w-full max-w-6xl">
-      <section className="mb-8 flex flex-col gap-4 border-b border-[#e5e7eb] pb-6 sm:flex-row sm:items-end sm:justify-between">
+      <section className="mb-6 flex flex-col gap-4 border-b border-[#e5e7eb] pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-black sm:text-3xl">
             Bookings
@@ -237,6 +217,23 @@ const TutorBookingsPage = () => {
         </p>
       </section>
 
+      {/* Status Filter Tabs */}
+      <div className="mb-6 flex flex-wrap gap-2">
+        {["ALL", "PENDING", "ACCEPTED", "CANCELLED", "REJECTED", "COMPLETED"].map((status) => (
+          <button
+            key={status}
+            onClick={() => handleStatusChange(status)}
+            className={`rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider transition ${
+              statusFilter === status
+                ? "bg-black text-white shadow-sm"
+                : "border border-[#dfe2e7] bg-white text-[#626770] hover:border-black hover:text-black"
+            }`}
+          >
+            {status}
+          </button>
+        ))}
+      </div>
+
       {actionError && (
         <div className="mb-6 rounded-lg border border-[#ffdad6] bg-[#fff8f7] px-4 py-3">
           <p className="text-sm text-[#93000a]">
@@ -252,12 +249,12 @@ const TutorBookingsPage = () => {
               title={
                 totalItems === 0
                   ? "No bookings yet"
-                  : "No bookings on this page"
+                  : "No bookings found for this filter"
               }
               message={
                 totalItems === 0
                   ? "Student lesson requests will appear here."
-                  : "Try another page."
+                  : "Try selecting a different status filter."
               }
             />
           </CardContent>

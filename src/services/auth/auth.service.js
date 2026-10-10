@@ -51,6 +51,23 @@ const authService = {
       payload
     );
   },
+
+  setupSecurityQA(payload, config = {}) {
+    return api.put("/auth/security-qa", payload, config);
+  },
+  getSecurityQuestion(payload, config = {}) {
+    return api.post("/auth/security-question", payload, config);
+  },
+  verifySecurityAnswer(payload, config = {}) {
+    return api.post("/auth/verify-security-answer", payload, config);
+  },
+  resetPasswordWithQA(payload, config = {}) {
+    return api.post("/auth/reset-password-qa", payload, config);
+  },
+  changePassword(payload, config = {}) {
+    return api.post("/auth/change-password", payload, config);
+  },
+  
 };
 
 export default authService;

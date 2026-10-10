@@ -16,6 +16,9 @@ import {
 } from "@/components/common";
 import ProfilePictureUpload from "@/components/common/upload-pfp";
 
+import { ChangePasswordSection } from "@/components/common/change-password.component";
+import { SecurityQASection } from "@/components/common/qna-verification.component";
+
 import {
   useProfile,
   useStudentProfile,
@@ -575,11 +578,6 @@ const StudentSettingsPage = () => {
             <h1 className="text-2xl font-semibold tracking-tight text-black sm:text-3xl">
               Settings
             </h1>
-
-            <p className="mt-1 truncate text-sm text-[#626770]">
-              {user.full_name || "Student"}
-              {user.email ? ` · ${user.email}` : ""}
-            </p>
           </div>
         </div>
       </section>
@@ -622,39 +620,11 @@ const StudentSettingsPage = () => {
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Password</CardTitle>
-
-            <p className="mt-1 text-sm text-[#626770]">
-              Manage your account password.
-            </p>
-          </CardHeader>
-
-          <CardContent>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-medium text-black">
-                  Change your password
-                </p>
-
-                <p className="mt-1 text-sm text-[#626770]">
-                  Password changes are not available yet.
-                </p>
-              </div>
-
-              <Button
-                type="button"
-                variant="outline"
-                disabled
-                className="shrink-0"
-              >
-                Change password
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Modular Security Q&A Section */}
+          <SecurityQASection user={user} />
+              
+        {/* Modular Change Password Section */}
+          <ChangePasswordSection />
       </div>
     </div>
   );

@@ -18,6 +18,9 @@ import {
 } from "@/components/common";
 import ProfilePictureUpload from "@/components/common/upload-pfp";
 
+import { ChangePasswordSection } from "@/components/common/change-password.component";
+import { SecurityQASection } from "@/components/common/qna-verification.component";
+
 import {
   useProfile,
   useUpdateProfile,
@@ -82,7 +85,7 @@ const TutorSettingsPage = () => {
     teaching_mode: "ONLINE",
   });
 
-  // Modal states
+  // Modal states for personal and professional info
   const [showUserSaveModal, setShowUserSaveModal] = useState(false);
   const [showUserCancelModal, setShowUserCancelModal] = useState(false);
 
@@ -295,7 +298,7 @@ const TutorSettingsPage = () => {
     null;
 
   return (
-    <div className="mx-auto w-full max-w-6xl">
+    <div className="mx-auto w-full max-w-6xl pb-12">
       <section className="border-b border-[#e5e7eb] pb-6">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
           <ProfilePictureUpload
@@ -307,11 +310,6 @@ const TutorSettingsPage = () => {
             <h1 className="text-2xl font-semibold tracking-tight text-black sm:text-3xl">
               Settings  
             </h1>
-
-            <p className="mt-1 truncate text-sm text-[#626770]">
-              {user.full_name || "Tutor"}
-              {user.email ? ` · ${user.email}` : ""}
-            </p>
           </div>
         </div>
       </section>
@@ -347,7 +345,6 @@ const TutorSettingsPage = () => {
                   <p className="text-xs uppercase tracking-wide text-[#8a8e95]">
                     Full name
                   </p>
-
                   <p className="mt-1.5 text-sm font-medium text-black">
                     {user.full_name || "—"}
                   </p>
@@ -357,7 +354,6 @@ const TutorSettingsPage = () => {
                   <p className="text-xs uppercase tracking-wide text-[#8a8e95]">
                     City
                   </p>
-
                   <p className="mt-1.5 text-sm font-medium text-black">
                     {user.city || "—"}
                   </p>
@@ -367,7 +363,6 @@ const TutorSettingsPage = () => {
                   <p className="text-xs uppercase tracking-wide text-[#8a8e95]">
                     Phone
                   </p>
-
                   <p className="mt-1.5 text-sm font-medium text-black">
                     {user.phone_number || "—"}
                   </p>
@@ -377,7 +372,6 @@ const TutorSettingsPage = () => {
                   <p className="text-xs uppercase tracking-wide text-[#8a8e95]">
                     Timezone
                   </p>
-
                   <p className="mt-1.5 text-sm font-medium text-black">
                     {user.timezone || "—"}
                   </p>
@@ -441,9 +435,7 @@ const TutorSettingsPage = () => {
                     type="submit"
                     disabled={updateProfileMutation.isPending}
                   >
-                    {updateProfileMutation.isPending
-                      ? "Saving..."
-                      : "Save changes"}
+                    {updateProfileMutation.isPending ? "Saving..." : "Save changes"}
                   </Button>
                 </div>
               </form>
@@ -481,7 +473,6 @@ const TutorSettingsPage = () => {
                   <p className="text-xs uppercase tracking-wide text-[#8a8e95]">
                     Bio
                   </p>
-
                   <p className="mt-2 max-w-4xl whitespace-pre-wrap text-sm leading-7 text-[#33373d]">
                     {tutor.professional_bio || "No bio added."}
                   </p>
@@ -492,7 +483,6 @@ const TutorSettingsPage = () => {
                     <p className="text-xs uppercase tracking-wide text-[#8a8e95]">
                       Hourly rate
                     </p>
-
                     <p className="mt-1.5 text-sm font-medium text-black">
                       {tutor.hourly_rate !== undefined &&
                       tutor.hourly_rate !== null
@@ -505,7 +495,6 @@ const TutorSettingsPage = () => {
                     <p className="text-xs uppercase tracking-wide text-[#8a8e95]">
                       Teaching mode
                     </p>
-
                     <p className="mt-1.5 text-sm font-medium text-black">
                       {TEACHING_MODE_LABELS[tutor.teaching_mode] ?? "—"}
                     </p>
@@ -569,9 +558,7 @@ const TutorSettingsPage = () => {
                     type="submit"
                     disabled={updateTutorProfileMutation.isPending}
                   >
-                    {updateTutorProfileMutation.isPending
-                      ? "Saving..."
-                      : "Save changes"}
+                    {updateTutorProfileMutation.isPending ? "Saving..." : "Save changes"}
                   </Button>
                 </div>
               </form>
@@ -593,7 +580,6 @@ const TutorSettingsPage = () => {
                     ? "Accepting new bookings"
                     : "Not accepting new bookings"}
                 </p>
-
                 <p className="mt-1 text-sm text-[#626770]">
                   {tutor.is_available
                     ? "Students can currently book you."
@@ -626,7 +612,6 @@ const TutorSettingsPage = () => {
                 <p className="text-xs uppercase tracking-wide text-[#8a8e95]">
                   Email
                 </p>
-
                 <p className="mt-1.5 text-sm font-medium text-black">
                   {user.email || "—"}
                 </p>
@@ -636,7 +621,6 @@ const TutorSettingsPage = () => {
                 <p className="text-xs uppercase tracking-wide text-[#8a8e95]">
                   Role
                 </p>
-
                 <p className="mt-1.5 text-sm font-medium text-black">
                   {user.role || "—"}
                 </p>
@@ -645,29 +629,11 @@ const TutorSettingsPage = () => {
           </CardContent>
         </Card>
 
-        {/* Password */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Password</CardTitle>
-          </CardHeader>
+        {/* Modular Security Q&A Section */}
+        <SecurityQASection user={user} />
 
-          <CardContent>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm text-[#626770]">
-                Password changes are not available yet.
-              </p>
-
-              <Button
-                type="button"
-                variant="outline"
-                disabled
-                className="shrink-0"
-              >
-                Change password
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Modular Change Password Section */}
+        <ChangePasswordSection />
       </div>
 
       {/* Confirmation Modal for Personal Info Save */}
@@ -702,7 +668,7 @@ const TutorSettingsPage = () => {
         onClose={() => setShowTutorSaveModal(false)}
         onConfirm={confirmUpdateTutor}
         title="Are you sure you want to update your professional information?"
-        message="Your tutor bio, rate, and teaching mode will be updated on your public profile."
+        message="Your tutor professional info will be updated on your public profile."
         confirmText="Save changes"
         variant="primary"
         isLoading={updateTutorProfileMutation.isPending}
